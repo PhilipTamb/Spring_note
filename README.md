@@ -573,7 +573,8 @@ public class UserController {
 ```
 
 ## 5 Creazione profetto con Spring Initializr
-[Spring Initializr](https://start.spring.io/)
+
+1. [Spring Initializr](https://start.spring.io/)
 
 ![Initializr](/img/1.png)
 
@@ -583,14 +584,19 @@ eliminare nel nome package il dash `-` nel nome.
 
 
 
-incollare gli artefatti scaricati da spring initializr dentro il nuovo progetto creato in IntelliJ
+2. incollare gli artefatti scaricati da spring initializr dentro il nuovo progetto creato in IntelliJ
 
 
-tasto destro su pom.xml 
 
 
-creare tabella
-```
+
+3. tasto destro su pom.xml 
+
+
+
+
+4. creare DB e tabella
+```java
 CREATE TABLE philip_db.Contatti (
 	id BIGINT auto_increment NOT NULL,
 	nome varchar(50) NOT NULL,
@@ -602,11 +608,13 @@ DEFAULT CHARSET=utf8mb4
 COLLATE=utf8mb4_0900_ai_ci;
 ```
 
-`application.properties`
 
+5. interfacciamo Spring al DB attrverso `application.properties`
+
+```java
 spring.application.name=contatto-service
 
-```
+
 spring.application.name=contatto-service
 
 spring.datasource.url=jdbc:mysql//197.0.0.1.3306/<db_name>
@@ -618,18 +626,101 @@ spring.jpa.hibernate.ddl-auto=none
 ```
 
 
+6. creazione Entity Contatto 
 dentro
 `spring.jpa.hibernate.ddl-auto=none`
 crea una cartella `model`
 crea un file  `Contatto` dentro `model`
 
+```java
+package it.eng.corso.contattoservice.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Table;
+import jakarta.persistence.Id;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+
+@Entity // annotazione che definisce Contatto come un Entity
+@Table(name = "Contatti") // con "@Table name" associamo l'entity alla tabella "Contatti" del DB alla classe "Contatto"
+public class Contatto {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY ) // definisce che è il DB ad occuparsi dell'autoincrement dell'id
+    private Long id;  //attributo da mappare con l'id della tabella Contatti nel DB
+    private String name; // per mappare name
+    private String numTelefono; /* in questo caso il comportamento standard di sping è quello di trasformare il camelCase in pascal case*/
+    /* In alternativa potremmo fare un associazioen esplicita tra la tabella e l'attributo con:
+    @Column( name = "num_telefono, lenght = 100) // associa la colonna "num_telefono" a  "numtel".  con l'annotation column possiamo andare a dettagliare le caratteristiche della nosta colonna come "lenght" che ne indica la lunghezza massima di questo attributo nella tabella del DB
+    private String numtel;
+     */
+}
+```
 
 
 (Understanding Camel Case, Pascal Case, Snake Case, Kebab Case, and Title Case)[https://pranish23.hashnode.dev/string-cases-in-programming-understanding-camel-case-pascal-case-snake-case-kebab-case-and-title-case]
 
 
 
+7. creazione della interfaccia per la repository per l'accesso al DB tramite Jpa
 crea nuovo package `repository`
 crea nuova interfaccia `ContattoRepository`
 
+```java
+package it.eng.corso.contattoservice.repository;
+
+import it.eng.corso.contattoservice.model.Contatto;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+@Repository
+public interface ContattoRepository extends JpaRepository<Contatto, Long>{ // specificare per quale entità dobbiamo creare la nostra repository indicare anche il tipo della chiave (id)
+}
+```
+
+8. creazione dell'interfaccia per definire la signeture delle funzioni che lancieranno le query nel DB
+creiamo un nuovo package service
+creiamo una nuova interfaccia `ContattoService`  qui specifichiamo l'interfaccia con la signeture dei metodi che la nostra business logic dovrà implementare. per esempio se vogliamo ricevere tutti i contatti implementiamo findAll() 
+```java
+package it.eng.corso.contattoservice.service;
+
+
+import it.eng.corso.contattoservice.model.Contatto;
+
+import java.util.List;
+
+public interface ContattoService {
+    List<Contatto> findAll();  // nell'implementazione lancierà una query che restituisce la lista contente tutti i contatti del DB
+}
+```
+per il nome possiamo chiamare il file dell'interfaccia con Inome_interfaccia con la I all'inizio
+oppure andare a chiamare la classe che implementa l'interfaccia come nome_fileImpl con Impl finale che specifica l'implementazione/utilizzo dell'interfaccia.
+
+
+component scan all'inizio va a visionare il codice per trovare eventuali stereotype come Service, Repository e Controller
+
+9. implementazione dell'interfaccia e dei metodi che lanciano le query e recuperano le informazioni dal DB.
+creiamo all'interno della folder `service` il file che implementa l'interfaccia definita nel file `ContattoService`.
+questo file lo chiameremo `ContattoServiceImpl`
+
+```java
+package it.eng.corso.contattoservice.service;
+
+import it.eng.corso.contattoservice.model.Contatto;
+import it.eng.corso.contattoservice.repository.ContattoRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class ContattoServiceImpl implements ContattoService{
+
+    @Autowired // annotatio per iniettare in maniera automatica la dipendenza di ContattoRepository
+    private ContattoRepository contattoRepository;
+
+    @Override
+    public List<Contatto> findAll(){
+        return contattoRepository.findAll();
+    }
+}
+```
