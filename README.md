@@ -754,3 +754,63 @@ public class ContattoController {
 ```
 
 `ContattoServiceAppliation` tasto destro `Run`
+
+
+
+
+
+> [!CAUTION]
+> Eseguendo un possibile errore può essere devuto al mancato mapping dei nomi tra attributi della tabella del DB con gli attributi della corrispondente Entity
+> gli orreri ottenibili possono essere:
+> `java.sql.SQLSyntaxErrorException: Unknown column 'c1_0.name' in 'field list'`
+> `java.sql.SQLSyntaxErrorException: Unknown column 'c1_0.num_telefono' in 'field list'`
+>
+> Questo perchè  `private String name`  e  `private String numTelefono` non corrispondono ai nomi delle tabelle
+> è possibile risolvere così:
+>
+>    @Column( name = "nome")
+>    private String name; // per mappare name
+>    @Column( name = "num_telefono", length = 100)
+>    private String numTelefono; 
+>
+
+Quindi il nuovo codice sarebbe:
+```
+ package it.eng.corso.contattoservice.model;
+
+import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity // annotazione che definisce Contatto come un Entity
+@Table(name = "contatti") // con "@Table name" associamo l'entity alla tabella "Contatti" del DB alla classe "Contatto"
+@Getter
+@Setter
+public class Contatto {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY ) // definisce che è il DB ad occuparsi dell'autoincrement dell'id
+    private Long id;  //attributo da mappare con l'id della tabella Contatti nel DB
+    @Column( name = "nome")
+    private String name; // per mappare name
+    private String numTelefono; /* in questo caso il comportamento standard di sping è quello di trasformare il camelCase in pascal case*/
+    /* In alternativa potremmo fare un associazioen esplicita tra la tabella e l'attributo con:
+    @Column( name = "num_telefono, lenght = 100) // associa la colonna "num_telefono" a  "numtel".  con l'annotation column possiamo andare a dettagliare le caratteristiche della nosta colonna come "lenght" che ne indica la lunghezza massima di questo attributo nella tabella del DB
+    private String numtel;
+     */
+```
+
+11. richiesta GET da browswe     
+
+![Initializr](/img/3.png)
+
+la lista restituita è vuota
+
+12. Insert e richiesta
+insert nel db
+```
+Insert into contatti(nome,numero_telefono) values ("Pippo", "3317658672");
+```
+
+![Initializr](/img/4.png)
+
+
