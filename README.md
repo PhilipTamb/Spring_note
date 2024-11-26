@@ -595,6 +595,8 @@ eliminare nel nome package il dash `-` nel nome.
 
 4. creare DB e tabella
 ```java
+CREATE DATABASE <db-name>;
+USE <db-name>;
 CREATE TABLE philip_db.Contatti (
 	id BIGINT auto_increment NOT NULL,
 	nome varchar(50) NOT NULL,
