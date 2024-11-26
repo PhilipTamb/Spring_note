@@ -5,51 +5,51 @@
 ### 1.1 Spring Framework
 Spring offre una serie di moduli che coprono vari aspetti dello sviluppo:
 
-Spring Core: Gestione dei bean e Inversion of Control (IoC).
-Spring MVC: Framework per lo sviluppo di applicazioni web.
-Spring Data: Integrazione con database.
-Spring Security: Gestione della sicurezza.
-Spring Cloud: Strumenti per microservizi, come service discovery, API gateway, e circuit breaker.
+* Spring Core: Gestione dei bean e Inversion of Control (IoC).
+* Spring MVC: Framework per lo sviluppo di applicazioni web.
+* Spring Data: Integrazione con database.
+* Spring Security: Gestione della sicurezza.
+* Spring Cloud: Strumenti per microservizi, come service discovery, API gateway, e circuit breaker.
 ### 1.2 Spring Boot
 Spring Boot semplifica il setup con funzionalità come:
 
-Autoconfigurazione: Configura automaticamente le componenti in base alle dipendenze nel progetto.
-Starter Dependencies: Pacchetti preconfigurati per aggiungere funzionalità come Spring Web o Spring Data.
-Embedded Servers: Tomcat o Jetty integrati per eseguire applicazioni standalone.
+* Autoconfigurazione: Configura automaticamente le componenti in base alle dipendenze nel progetto.
+* Starter Dependencies: Pacchetti preconfigurati per aggiungere funzionalità come Spring Web o Spring Data.
+* Embedded Servers: Tomcat o Jetty integrati per eseguire applicazioni standalone.
 #### 2. Architettura a Microservizi con Spring
 Un'architettura a microservizi prevede lo sviluppo di servizi indipendenti, ognuno con uno scopo specifico, comunicanti via protocolli come HTTP o message brokers (es. RabbitMQ, Kafka). Spring offre strumenti per:
 
-Service Discovery: Utilizzando Eureka o Consul.
-API Gateway: Con Spring Cloud Gateway.
-Comunicazione inter-servizio: Con REST, Feign Client o Event Streaming.
-Tolleranza ai guasti: Con Resilience4j o Spring Cloud Circuit Breaker.
+* Service Discovery: Utilizzando Eureka o Consul.
+* API Gateway: Con Spring Cloud Gateway.
+* Comunicazione inter-servizio: Con REST, Feign Client o Event Streaming.
+* Tolleranza ai guasti: Con Resilience4j o Spring Cloud Circuit Breaker.
 #### 3. Annotazioni Principali
 Spring utilizza annotazioni per configurare i componenti e definire il comportamento dell'applicazione. Ecco le più comuni:
 
 ##### 3.1 Gestione dei Componenti e IoC
-@Component: Marca una classe come bean gestito da Spring.
-@Service: Indica un componente di logica aziendale.
-@Repository: Indica un componente che interagisce con il database.
-@Controller / @RestController: Definisce un controller per gestire richieste HTTP (con @RestController che include @ResponseBody per i dati JSON).
+* `@Component`: Marca una classe come bean gestito da Spring.
+* `@Service`: Indica un componente di logica aziendale.
+* `@Repository`: Indica un componente che interagisce con il database.
+* `@Controller` / `@RestController`: Definisce un controller per gestire richieste HTTP (con `@RestController` che include `@ResponseBody` per i dati JSON).
 ##### 3.2 Configurazione
-@Configuration: Definisce una classe di configurazione.
-@Bean: Dichiara un bean da aggiungere al contesto Spring.
-@PropertySource: Carica file di configurazione esterni (es. .properties).
+* `@Configuration`: Definisce una classe di configurazione.
+* `@Bean`: Dichiara un bean da aggiungere al contesto Spring.
+* `@PropertySource`: Carica file di configurazione esterni (es. .properties).
 ##### 3.3 Web e API
-@RequestMapping: Mappa le richieste HTTP a metodi o classi.
-@GetMapping, @PostMapping, ecc.: Versioni specializzate per richieste HTTP GET, POST, ecc.
-@PathVariable: Estrae parametri dalla URL.
-@RequestParam: Estrae parametri dalla query string.
-@RequestBody: Legge il corpo della richiesta HTTP (tipicamente JSON).
-@ResponseBody: Scrive direttamente una risposta HTTP.
+* `@RequestMapping`: Mappa le richieste HTTP a metodi o classi.
+* `@GetMapping`, `@PostMapping`, ecc.: Versioni specializzate per richieste HTTP GET, POST, ecc.
+* `@PathVariable`: Estrae parametri dalla URL.
+* `@RequestParam`: Estrae parametri dalla query string.
+* `@RequestBody`: Legge il corpo della richiesta HTTP (tipicamente JSON).
+* `@ResponseBody`: Scrive direttamente una risposta HTTP.
 ##### 3.4 Dependency Injection
-@Autowired: Inietta dipendenze automaticamente.
-@Qualifier: Specifica quale bean iniettare se ci sono ambiguità.
-@Value: Inietta valori dalle proprietà configurate.
+* `@Autowired`: Inietta dipendenze automaticamente.
+* `@Qualifier`: Specifica quale bean iniettare se ci sono ambiguità.
+* `@Value`: Inietta valori dalle proprietà configurate.
 ##### 3.5 Microservizi Specifiche
-@EnableDiscoveryClient: Abilita un servizio come client in un sistema di Service Discovery (Eureka, Consul).
-@FeignClient: Usato per comunicare con altri servizi tramite REST.
-@CircuitBreaker: Implementa un meccanismo di fallback per tolleranza ai guasti.
+* `@EnableDiscoveryClient`: Abilita un servizio come client in un sistema di Service Discovery (Eureka, Consul).
+* `@FeignClient`: Usato per comunicare con altri servizi tramite REST.
+* `@CircuitBreaker`: Implementa un meccanismo di fallback per tolleranza ai guasti.
 #### 4. Esempio Base
 Ecco un semplice esempio per un microservizio REST:
 
@@ -110,7 +110,7 @@ com.example.myproject
 ```
 ### 2.1 Package Controller
 Scopo: Gestire le richieste HTTP e orchestrare le chiamate ai servizi.
-Contenuto: Classi annotate con @RestController o @Controller.
+Contenuto: Classi annotate con `@RestController` o `@Controller`.
 Esempio:
 ```
 @RestController
@@ -131,7 +131,7 @@ public class UserController {
 ### 2.2 Package Model
 Scopo: Definire entità persistenti, DTO (Data Transfer Objects) e classi utili come enumerazioni.
 Contenuto:
-Entità annotate con @Entity.
+Entità annotate con `@Entity`.
 DTO senza annotazioni (strutture dati per trasferire dati tra livelli).
 Enumerazioni utili.
 Esempio:
@@ -150,7 +150,7 @@ public class User {
 ```
 ### 2.3 Package Repository
 Scopo: Fornire accesso ai dati persistenti.
-Contenuto: Interfacce che estendono JpaRepository o CrudRepository.
+Contenuto: Interfacce che estendono `JpaRepository` o `CrudRepository`.
 Esempio:
 ```
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -180,7 +180,7 @@ public class UserService {
 ```
 ### 2.5 Package Config
 Scopo: Contenere configurazioni generali per il progetto (Bean, sicurezza, ecc.).
-Contenuto: Classi annotate con @Configuration, @Enable..., ecc.
+Contenuto: Classi annotate con `@Configuration`, `@Enable`..., ecc.
 Esempio:
 ```
 @Configuration
@@ -226,7 +226,7 @@ Includi un logger nelle classi principali (controller, service) per tracciare le
 Gestisci errori con eccezioni personalizzate e un gestore globale:
 
 Crea un package exception per definire le tue eccezioni.
-Usa un gestore annotato con @ControllerAdvice.
+Usa un gestore annotato con `@ControllerAdvice`.
 ### 4.5 Testing
 Aggiungi test per ogni layer:
 
@@ -258,8 +258,8 @@ spring.datasource.url: Specifica l'URL di connessione al database. Include:
 Protocollo (jdbc:mysql per MySQL).
 Host e porta (localhost:3306).
 Nome del database (mydatabase).
-spring.datasource.username e spring.datasource.password: Credenziali per accedere al database.
-spring.datasource.driver-class-name: Specifica il driver JDBC utilizzato (ad esempio, per MySQL è com.mysql.cj.jdbc.Driver).
+`spring.datasource.username` e `spring.datasource.password`: Credenziali per accedere al database.
+`spring.datasource.driver-class-name`: Specifica il driver JDBC utilizzato (ad esempio, per MySQL è `com.mysql.cj.jdbc.Driver`).
 Connessione con Pooling
 Per gestire molteplici connessioni in modo efficiente, Spring usa un connection pool, tipicamente HikariCP:
 
@@ -333,11 +333,13 @@ Proprietà Hibernate Aggiuntive
 Puoi specificare ulteriori configurazioni Hibernate:
 
 # Cache di secondo livello
+```
 spring.jpa.properties.hibernate.cache.use_second_level_cache=true
 spring.jpa.properties.hibernate.cache.region.factory_class=org.hibernate.cache.jcache.JCacheRegionFactory
 
 # Timeout di query
 spring.jpa.properties.hibernate.default_batch_fetch_size=16
+```
 5. Testare la Configurazione
 Dopo aver configurato il datasource e JPA:
 
@@ -368,10 +370,11 @@ Verificare la Connessione: Esegui l'applicazione e controlla che Spring generi c
 
 
 
-## 4. In Spring, puoi creare un repository annotato con @Repository per eseguire operazioni sul database. Spring Data JPA offre diversi modi per fare query sul database: tramite metodi derivati, query personalizzate annotate con @Query, o usando Named Queries definite nelle entità. Vediamo ogni approccio.
+## 4. Spring Repository e interfacciamento con il DB
+In Spring, puoi creare un repository annotato con `@Repository` per eseguire operazioni sul database. Spring Data JPA offre diversi modi per fare query sul database: tramite metodi derivati, query personalizzate annotate con `@Query`, o usando Named Queries definite nelle entità. Vediamo ogni approccio.
 
 ### 4.1 Creare un Repository Base
-Entità del database Definisci una classe annotata con @Entity per rappresentare una tabella nel database:
+Entità del database Definisci una classe annotata con `@Entity` per rappresentare una tabella nel database:
 ```
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -390,10 +393,10 @@ public class User {
     // Getters, Setters e Costruttori
 }
 ```
-Repository Crea un'interfaccia che estenda JpaRepository per definire il tuo repository. Questo fornisce metodi CRUD predefiniti come save, findById, e delete.
-
-import org.springframework.data.jpa.repository.JpaRepository;
+Repository Crea un'interfaccia che estenda JpaRepository per definire il tuo repository. Questo fornisce metodi CRUD predefiniti come `save`, `findById`, e `delete`.
 ```
+import org.springframework.data.jpa.repository.JpaRepository;
+
 public interface UserRepository extends JpaRepository<User, Long> {
 }
 ```
@@ -402,9 +405,9 @@ Ora hai un repository base che esegue operazioni standard senza dover scrivere c
 ### 2. Query Personalizzate
 #### 2.1 Metodi Derivati
 Spring Data JPA crea automaticamente query basate sui nomi dei metodi nella tua interfaccia. Devi solo seguire un convenzione di denominazione:
-
-import org.springframework.stereotype.Repository;
 ```
+import org.springframework.stereotype.Repository;
+
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     // Trova utenti per email
@@ -442,6 +445,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ```
 * JPQL: È basato su entità, non tabelle.
 * SQL Nativa: Usa la sintassi SQL e lavora direttamente sulle tabelle.
+
 ### 3. Named Queries
 Puoi definire query preconfigurate direttamente nell'entità usando l'annotazione @NamedQuery:
 ```
