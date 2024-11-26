@@ -721,7 +721,7 @@ public class ContattoServiceImpl implements ContattoService{
 }
 ```
 
-creiamo la folder controller dentro la quale creiamo ContattoController
+10. creiamo la folder controller dentro la quale creiamo ContattoController
 questo componente dovrà rispondere alla richiesta di un client che avverrà ad un determinato path.
 per fare ciò  utiliziamo lo stereitype @RestController. 
 il @RestController restituirà al client un file json. questo componente richiederà le informazioni direttamente al Service
