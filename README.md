@@ -5,6 +5,7 @@
 2. [Struttura Base del Progetto](#2-struttura-base-del-progetto)
 3. [Configurazione DB](#3-configurazione-db)
 4. [Spring Repository e interfacciamento con il DB](#4-spring-repository-e-interfacciamento-con-il-db)
+5. [Primo progetto Step-by-Step](#5-primo-progetto-step-by-step)
 
 ## 1. Basi di Spring
 ### 1.1 Spring Framework
@@ -572,9 +573,9 @@ public class UserController {
 }
 ```
 
-## 5 Creazione progetto con Spring Initializr
+## 5 Primo progetto Step-by-Step
 
-1. [Spring Initializr](https://start.spring.io/)
+1.  Creazione progetto con [Spring Initializr](https://start.spring.io/)
 
 ![Initializr](/img/1.png)
 
