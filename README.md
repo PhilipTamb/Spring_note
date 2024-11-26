@@ -779,7 +779,7 @@ dall'icona Play
 >
 
 Quindi il nuovo codice di `Contatto` sarebbe:
-```
+```java
  package it.eng.corso.contattoservice.model;
 
 import jakarta.persistence.*;
