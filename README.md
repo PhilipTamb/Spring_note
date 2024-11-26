@@ -571,3 +571,65 @@ public class UserController {
     }
 }
 ```
+
+## 5 Creazione profetto con Spring Initializr
+[Spring Initializr](https://start.spring.io/)
+
+![Initializr](/img/1.png)
+
+eliminare nel nome package il dash `-` nel nome.
+
+
+
+
+
+incollare gli artefatti scaricati da spring initializr dentro il nuovo progetto creato in IntelliJ
+
+
+tasto destro su pom.xml 
+
+
+creare tabella
+```
+CREATE TABLE philip_db.Contatti (
+	id BIGINT auto_increment NOT NULL,
+	nome varchar(50) NOT NULL,
+	numero_telefono varchar(100) NOT NULL,
+	CONSTRAINT Contatti_PK PRIMARY KEY (id)
+)
+ENGINE=InnoDB
+DEFAULT CHARSET=utf8mb4
+COLLATE=utf8mb4_0900_ai_ci;
+```
+
+`application.properties`
+
+spring.application.name=contatto-service
+
+```
+spring.application.name=contatto-service
+
+spring.datasource.url=jdbc:mysql//197.0.0.1.3306/<db_name>
+spring.datasource.username=<use>
+spring.datasource.password=<password>
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=none
+```
+
+
+dentro
+`spring.jpa.hibernate.ddl-auto=none`
+crea una cartella `model`
+crea un file  `Contatto` dentro `model`
+
+
+
+
+(Understanding Camel Case, Pascal Case, Snake Case, Kebab Case, and Title Case)[https://pranish23.hashnode.dev/string-cases-in-programming-understanding-camel-case-pascal-case-snake-case-kebab-case-and-title-case]
+
+
+
+crea nuovo package `repository`
+crea nuova interfaccia `ContattoRepository`
+
