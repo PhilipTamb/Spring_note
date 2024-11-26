@@ -764,7 +764,7 @@ dall'icona Play
 
 
 > [!CAUTION]
-> Eseguendo un possibile errore può essere devuto al mancato mapping dei nomi tra attributi della tabella del DB con gli attributi della corrispondente Entity
+> Lanciando il progetto un possibile errore può essere dovuto al mancato mapping dei nomi tra attributi della tabella del DB con gli attributi della corrispondente Entity
 > gli orreri ottenibili possono essere:
 > `java.sql.SQLSyntaxErrorException: Unknown column 'c1_0.name' in 'field list'`
 > `java.sql.SQLSyntaxErrorException: Unknown column 'c1_0.num_telefono' in 'field list'`
