@@ -693,7 +693,7 @@ per il nome possiamo chiamare il file dell'interfaccia con `Inome_interfaccia` c
 oppure andare a chiamare la classe che implementa l'interfaccia come `nome_fileImpl` con Impl finale che specifica l'implementazione/utilizzo dell'interfaccia.
 
 > [!NOTE]
-> Il `component scan` all'inizio va a visionare il codice per trovare eventuali stereotype come `Service`, `Repository` e `Controller`.
+> Il `component scan` all'inizio dell'esecuzione va a visionare il codice per trovare eventuali stereotype come `Service`, `Repository` e `Controller`.
 
 9. implementazione dell'interfaccia e dei metodi che lanciano le query e recuperano le informazioni dal DB.
 creiamo all'interno della folder `service` il file che implementa l'interfaccia definita nel file `ContattoService`.
