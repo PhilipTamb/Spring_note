@@ -597,7 +597,7 @@ eliminare nel nome package il dash `-` nel nome.
 ```java
 CREATE DATABASE <db-name>;
 USE <db-name>;
-CREATE TABLE <db-name>.Contatti (
+CREATE TABLE <db-name>.contatti (
 	id BIGINT auto_increment NOT NULL,
 	nome varchar(50) NOT NULL,
 	numero_telefono varchar(100) NOT NULL,
@@ -692,8 +692,8 @@ public interface ContattoService {
 per il nome possiamo chiamare il file dell'interfaccia con `Inome_interfaccia` con la `I` all'inizio
 oppure andare a chiamare la classe che implementa l'interfaccia come `nome_fileImpl` con Impl finale che specifica l'implementazione/utilizzo dell'interfaccia.
 
-
-il `component scan` all'inizio va a visionare il codice per trovare eventuali stereotype come `Service`, `Repository` e `Controller`.
+> [!NOTE]
+> Il `component scan` all'inizio va a visionare il codice per trovare eventuali stereotype come `Service`, `Repository` e `Controller`.
 
 9. implementazione dell'interfaccia e dei metodi che lanciano le query e recuperano le informazioni dal DB.
 creiamo all'interno della folder `service` il file che implementa l'interfaccia definita nel file `ContattoService`.
