@@ -1,5 +1,10 @@
 # Spring_note
 
+1. [Basi di Spring](#1-basi-di-spring)
+    - [Spring Framework](#spring-framework)
+2. [Struttura Base del Progetto](#2-struttura-base-del-progetto)
+3. [Configurazione DB](#3-configurazione-db)
+4. [Spring Repository e interfacciamento con il DB](#4-spring-repository-e-interfacciamento-con-il-db)
 
 ## 1. Basi di Spring
 ### 1.1 Spring Framework
@@ -191,7 +196,7 @@ public class AppConfig {
     }
 }
 ```
-## 3. Vantaggi di questa Struttura
+### 3 Vantaggi di questa Struttura
 Separation of Concerns (SoC): Ogni package ha una responsabilità chiara e distinta.
 Scalabilità: Puoi aggiungere nuove funzionalità o microservizi senza confondere il codice esistente.
 Manutenibilità: È facile individuare il codice relativo a un determinato ambito (es. logica o accesso ai dati).
@@ -238,7 +243,8 @@ Repository: Test di integrazione con un database in-memory come H2.
 
 
 
-## 3. In Spring, la configurazione del datasource e di JPA (Java Persistence API) tramite il file application.properties è fondamentale per definire come la tua applicazione si connette a un database e come utilizza JPA per la persistenza dei dati. Vediamo come funzionano e come configurare questi elementi.
+## 3. Configurazione DB 
+In Spring, la configurazione del datasource e di JPA (Java Persistence API) tramite il file application.properties è fondamentale per definire come la tua applicazione si connette a un database e come utilizza JPA per la persistenza dei dati. Vediamo come funzionano e come configurare questi elementi.
 
 ### 3.1 Spring DataSource
 Un DataSource rappresenta la configurazione di connessione al database, come URL, credenziali, driver, ecc. Spring utilizza questa configurazione per creare una connessione al database.
@@ -420,7 +426,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByNameContaining(String keyword);
 }
 ```
-Convenzioni di denominazione:
+Convenzioni di denominazione  [JPA Query Methods](https://docs.spring.io/spring-data/jpa/reference/jpa/query-methods.html):
 * `findBy`: Per query basate su un campo.
 * `And` / `Or`: Per combinare condizioni (`findByNameAndEmail`).
 * `Containing` / `StartingWith` / `EndingWith`: Per ricerche parziali.
