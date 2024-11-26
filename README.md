@@ -655,7 +655,7 @@ public class Contatto {
 ```
 
 
-(Understanding Camel Case, Pascal Case, Snake Case, Kebab Case, and Title Case)[https://pranish23.hashnode.dev/string-cases-in-programming-understanding-camel-case-pascal-case-snake-case-kebab-case-and-title-case]
+[Understanding Camel Case, Pascal Case, Snake Case, Kebab Case, and Title Case](https://pranish23.hashnode.dev/string-cases-in-programming-understanding-camel-case-pascal-case-snake-case-kebab-case-and-title-case)
 
 
 
