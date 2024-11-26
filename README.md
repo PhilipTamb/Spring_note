@@ -597,7 +597,7 @@ eliminare nel nome package il dash `-` nel nome.
 ```java
 CREATE DATABASE <db-name>;
 USE <db-name>;
-CREATE TABLE philip_db.Contatti (
+CREATE TABLE <db-name>.Contatti (
 	id BIGINT auto_increment NOT NULL,
 	nome varchar(50) NOT NULL,
 	numero_telefono varchar(100) NOT NULL,
@@ -611,7 +611,7 @@ COLLATE=utf8mb4_0900_ai_ci;
 
 5. interfacciamo Spring al DB attrverso `application.properties`
 
-```java
+```java   
 spring.application.name=contatto-service
 
 spring.datasource.url=jdbc:mysql://197.0.0.1:3306/<db_name>
@@ -625,11 +625,9 @@ spring.jpa.hibernate.ddl-auto=none
 
 
 6. creazione Entity Contatto 
-dentro
-`spring.jpa.hibernate.ddl-auto=none`
-crea una cartella `model`
-crea un file  `Contatto` dentro `model`
+All'interno di `spring.jpa.hibernate.ddl-auto=none` crea una cartella `model`. All'interno di `model` creare un file  `Contatto.java` 
 
+`Contatto.java`
 ```java
 package it.eng.corso.contattoservice.model;
 
@@ -660,9 +658,9 @@ public class Contatto {
 
 
 7. creazione della interfaccia per la repository per l'accesso al DB tramite Jpa
-crea nuovo package `repository`
-crea nuova interfaccia `ContattoRepository`
+crea nuovo package `repository` all'interno del quale creiamo una nuova interfaccia `ContattoRepository.java`
 
+`ContattoRepository.java`
 ```java
 package it.eng.corso.contattoservice.repository;
 
@@ -676,8 +674,9 @@ public interface ContattoRepository extends JpaRepository<Contatto, Long>{ // sp
 ```
 
 8. creazione dell'interfaccia per definire la signeture delle funzioni che lancieranno le query nel DB
-creiamo un nuovo package service
-creiamo una nuova interfaccia `ContattoService`  qui specifichiamo l'interfaccia con la signeture dei metodi che la nostra business logic dovrà implementare. per esempio se vogliamo ricevere tutti i contatti implementiamo findAll() 
+creiamo un nuovo package `service` all'interno della quale creiamo una nuova interfaccia `ContattoService`  qui specifichiamo l'interfaccia con la signeture dei metodi che la nostra business logic dovrà implementare. per esempio se vogliamo ricevere tutti i contatti implementiamo `findAll()`.
+
+`ContattoService.java` 
 ```java
 package it.eng.corso.contattoservice.service;
 
@@ -690,16 +689,17 @@ public interface ContattoService {
     List<Contatto> findAll();  // nell'implementazione lancierà una query che restituisce la lista contente tutti i contatti del DB
 }
 ```
-per il nome possiamo chiamare il file dell'interfaccia con Inome_interfaccia con la I all'inizio
-oppure andare a chiamare la classe che implementa l'interfaccia come nome_fileImpl con Impl finale che specifica l'implementazione/utilizzo dell'interfaccia.
+per il nome possiamo chiamare il file dell'interfaccia con `Inome_interfaccia` con la `I` all'inizio
+oppure andare a chiamare la classe che implementa l'interfaccia come `nome_fileImpl` con Impl finale che specifica l'implementazione/utilizzo dell'interfaccia.
 
 
-component scan all'inizio va a visionare il codice per trovare eventuali stereotype come Service, Repository e Controller
+il `component scan` all'inizio va a visionare il codice per trovare eventuali stereotype come `Service`, `Repository` e `Controller`.
 
 9. implementazione dell'interfaccia e dei metodi che lanciano le query e recuperano le informazioni dal DB.
 creiamo all'interno della folder `service` il file che implementa l'interfaccia definita nel file `ContattoService`.
 questo file lo chiameremo `ContattoServiceImpl`
 
+`ContattoServiceImpl.java`
 ```java
 package it.eng.corso.contattoservice.service;
 
@@ -723,11 +723,12 @@ public class ContattoServiceImpl implements ContattoService{
 }
 ```
 
-10. creiamo la folder controller dentro la quale creiamo ContattoController
-questo componente dovrà rispondere alla richiesta di un client che avverrà ad un determinato path.
-per fare ciò  utiliziamo lo stereitype @RestController. 
-il @RestController restituirà al client un file json. questo componente richiederà le informazioni direttamente al Service
+10. creiamo la folder `controller` dentro la quale creiamo `ContattoController`. Questo componente dovrà rispondere alla richiesta di un client che arriveranno ad un determinato path.
+per fare ciò  utiliziamo lo stereotype `@RestController`. 
+il `@RestController` restituirà al client un file json. questo componente richiederà le informazioni direttamente al Service
 
+
+ `ContattoController.java`
 ```java
 package it.eng.corso.contattoservice.controller;
 
@@ -753,7 +754,10 @@ public class ContattoController {
 
 ```
 
+lanciare il microservizio con:
 `ContattoServiceAppliation` tasto destro `Run`
+o 
+dall'icona Play
 
 
 
@@ -774,7 +778,7 @@ public class ContattoController {
 >    private String numTelefono; 
 >
 
-Quindi il nuovo codice sarebbe:
+Quindi il nuovo codice di `Contatto` sarebbe:
 ```
  package it.eng.corso.contattoservice.model;
 
@@ -799,7 +803,7 @@ public class Contatto {
      */
 ```
 
-11. richiesta GET da browswe     
+11. richiesta GET da browser     
 
 ![Initializr](/img/3.png)
 
