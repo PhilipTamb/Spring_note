@@ -584,10 +584,10 @@ eliminare nel nome package il dash `-` nel nome.
 
 
 
-2. incollare gli artefatti scaricati da spring initializr dentro il nuovo progetto creato in IntelliJ
+3. Crea un nuovo progetto con IntelliJ e incolla gli artefatti scaricati da spring initializr  
 
 
-
+![Initializr](/img/2.png)
 
 
 3. tasto destro su pom.xml 
