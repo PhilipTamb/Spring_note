@@ -58,7 +58,7 @@ Spring utilizza annotazioni per configurare i componenti e definire il comportam
 #### 4. Esempio Base
 Ecco un semplice esempio per un microservizio REST:
 
-```
+```java
 @SpringBootApplication
 public class MyMicroserviceApplication {
     public static void main(String[] args) {
@@ -79,7 +79,7 @@ public class MyController {
 #### 5. Configurazione di Microservizi
 ##### 5.1 Service Discovery con Eureka
 Server Eureka:
-```
+```java
 @EnableEurekaServer
 @SpringBootApplication
 public class EurekaServerApplication {
@@ -89,7 +89,7 @@ public class EurekaServerApplication {
 }
 ```
 Client Eureka:
-```
+```java
 @EnableDiscoveryClient
 @SpringBootApplication
 public class MyMicroserviceApplication {
@@ -117,7 +117,7 @@ com.example.myproject
 Scopo: Gestire le richieste HTTP e orchestrare le chiamate ai servizi.
 Contenuto: Classi annotate con `@RestController` o `@Controller`.
 Esempio:
-```
+```java
 @RestController
 @RequestMapping("/api/users")
 public class UserController {
@@ -140,7 +140,7 @@ Entità annotate con `@Entity`.
 DTO senza annotazioni (strutture dati per trasferire dati tra livelli).
 Enumerazioni utili.
 Esempio:
-```
+```java
 @Entity
 public class User {
     @Id
@@ -157,7 +157,7 @@ public class User {
 Scopo: Fornire accesso ai dati persistenti.
 Contenuto: Interfacce che estendono `JpaRepository` o `CrudRepository`.
 Esempio:
-```
+```java
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(String email);
 }
@@ -166,7 +166,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 Scopo: Contenere la logica di business e orchestrare l'accesso ai repository.
 Contenuto: Classi annotate con @Service.
 Esempio:
-```
+```java
 @Service
 public class UserService {
     private final UserRepository userRepository;
@@ -187,7 +187,7 @@ public class UserService {
 Scopo: Contenere configurazioni generali per il progetto (Bean, sicurezza, ecc.).
 Contenuto: Classi annotate con `@Configuration`, `@Enable`..., ecc.
 Esempio:
-```
+```java
 @Configuration
 public class AppConfig {
     @Bean
@@ -252,7 +252,7 @@ Un DataSource rappresenta la configurazione di connessione al database, come URL
 Configurazione di Base
 Nel file application.properties:
 
-``` java
+```java
 # Configurazione del DataSource
 spring.datasource.url=jdbc:mysql://localhost:3306/mydatabase
 spring.datasource.username=root
@@ -270,7 +270,7 @@ Connessione con Pooling
 Per gestire molteplici connessioni in modo efficiente, Spring usa un connection pool, tipicamente HikariCP:
 
 # Configurazione di HikariCP (Connection Pool predefinito in Spring Boot)
-``` java
+```java
 spring.datasource.hikari.maximum-pool-size=10
 spring.datasource.hikari.minimum-idle=2
 spring.datasource.hikari.idle-timeout=30000
@@ -283,7 +283,7 @@ Configurazione di Base
 Spring JPA si configura tramite il file application.properties per gestire aspetti come DDL (schema generation) e comportamento delle transazioni:
 
 # Configurazione di Spring JPA
-```
+```java
 spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
@@ -308,7 +308,7 @@ Mantiene aperta la sessione Hibernate durante il ciclo di vita della richiesta. 
 Un esempio combinato di configurazione per MySQL:
 
 # DataSource
-```
+```java
 spring.datasource.url=jdbc:mysql://localhost:3306/mydatabase
 spring.datasource.username=root
 spring.datasource.password=secret
@@ -316,7 +316,7 @@ spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.datasource.hikari.maximum-pool-size=10
 ```
 # Spring JPA
-```
+```java
 spring.jpa.database-platform=org.hibernate.dialect.MySQL8Dialect
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true
@@ -326,7 +326,7 @@ spring.jpa.open-in-view=true
 ### 3.3 Configurazioni Avanzate
 Database in Memory (H2)
 Per i test, puoi configurare un database in-memory come H2:
-```
+```java
 spring.datasource.url=jdbc:h2:mem:testdb
 spring.datasource.driver-class-name=org.h2.Driver
 spring.datasource.username=sa
@@ -339,7 +339,7 @@ Proprietà Hibernate Aggiuntive
 Puoi specificare ulteriori configurazioni Hibernate:
 
 # Cache di secondo livello
-```
+```java
 spring.jpa.properties.hibernate.cache.use_second_level_cache=true
 spring.jpa.properties.hibernate.cache.region.factory_class=org.hibernate.cache.jcache.JCacheRegionFactory
 
@@ -350,7 +350,7 @@ spring.jpa.properties.hibernate.default_batch_fetch_size=16
 Dopo aver configurato il datasource e JPA:
 
 Creare una Entità:
-```
+```java
 @Entity
 public class User {
     @Id
@@ -381,7 +381,7 @@ In Spring, puoi creare un repository annotato con `@Repository` per eseguire ope
 
 ### 4.1 Creare un Repository Base
 Entità del database Definisci una classe annotata con `@Entity` per rappresentare una tabella nel database:
-```
+```java
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -400,7 +400,7 @@ public class User {
 }
 ```
 Repository Crea un'interfaccia che estenda JpaRepository per definire il tuo repository. Questo fornisce metodi CRUD predefiniti come `save`, `findById`, e `delete`.
-```
+```java
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UserRepository extends JpaRepository<User, Long> {
@@ -411,7 +411,7 @@ Ora hai un repository base che esegue operazioni standard senza dover scrivere c
 ### 2. Query Personalizzate
 #### 2.1 Metodi Derivati
 Spring Data JPA crea automaticamente query basate sui nomi dei metodi nella tua interfaccia. Devi solo seguire un convenzione di denominazione:
-```
+```java
 import org.springframework.stereotype.Repository;
 
 @Repository
@@ -433,7 +433,7 @@ Convenzioni di denominazione  [JPA Query Methods](https://docs.spring.io/spring-
 * `OrderBy`: Per ordinare i risultati (`findByNameOrderByEmailAsc`).
 #### 2.2 @Query
 Per query più complesse, usa @Query per scrivere direttamente una query JPQL o SQL nativa.
-```
+```java
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -454,7 +454,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
 ### 3. Named Queries
 Puoi definire query preconfigurate direttamente nell'entità usando l'annotazione @NamedQuery:
-```
+```java
 import jakarta.persistence.Entity;
 import jakarta.persistence.NamedQuery;
 
@@ -469,7 +469,7 @@ public class User {
 }
 ```
 Nel repository, puoi richiamare la named query:
-```
+```java
 @Repository
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByEmail(@Param("email") String email); // Richiama "User.findByEmail"
@@ -479,7 +479,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 Ecco un esempio completo che combina i vari approcci:
 
 Entità:
-```
+```java
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -498,7 +498,7 @@ public class User {
 }
 ```
 Repository:
-```
+```java
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -521,7 +521,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
 ```
 Service
 Creiamo un service per utilizzare il repository:
-```
+```java
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -546,7 +546,7 @@ public class UserService {
 ```
 Controller
 Esporremo queste operazioni tramite un controller REST:
-```
+```java
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -614,12 +614,10 @@ COLLATE=utf8mb4_0900_ai_ci;
 ```java
 spring.application.name=contatto-service
 
-
-spring.application.name=contatto-service
-
-spring.datasource.url=jdbc:mysql//197.0.0.1.3306/<db_name>
-spring.datasource.username=<use>
+spring.datasource.url=jdbc:mysql://197.0.0.1:3306/<db_name>
+spring.datasource.username=root
 spring.datasource.password=<password>
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
 spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
 spring.jpa.show-sql=true
 spring.jpa.hibernate.ddl-auto=none
@@ -724,3 +722,35 @@ public class ContattoServiceImpl implements ContattoService{
     }
 }
 ```
+
+creiamo la folder controller dentro la quale creiamo ContattoController
+questo componente dovrà rispondere alla richiesta di un client che avverrà ad un determinato path.
+per fare ciò  utiliziamo lo stereitype @RestController. 
+il @RestController restituirà al client un file json. questo componente richiederà le informazioni direttamente al Service
+
+```java
+package it.eng.corso.contattoservice.controller;
+
+import it.eng.corso.contattoservice.model.Contatto;
+import it.eng.corso.contattoservice.service.ContattoService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController // Rest controller che gestirà le richieste ricevute dai client
+public class ContattoController {
+    @Autowired
+    private ContattoService contattoService;
+
+    @GetMapping("/api/v1/contatti") // gestione di una richiesta GET da parte di un client
+    public List<Contatto> restituisciElenco(){ // ristituiamo un lista di contatto recuperati dal DB tramite il Service
+        return contattoService.findAll();
+    }
+
+}
+
+```
+
+`ContattoServiceAppliation` tasto destro `Run`
