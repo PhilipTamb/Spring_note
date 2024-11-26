@@ -776,7 +776,7 @@ dall'icona Play
 >    private String name; // per mappare name
 >    @Column( name = "num_telefono", length = 100)
 >    private String numTelefono; 
->
+> [Resolving “Failed to Configure a DataSource” Error](https://www.baeldung.com/spring-boot-failed-to-configure-data-source)
 
 Quindi il nuovo codice di `Contatto` sarebbe:
 ```java
