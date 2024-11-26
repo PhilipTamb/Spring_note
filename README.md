@@ -572,7 +572,7 @@ public class UserController {
 }
 ```
 
-## 5 Creazione profetto con Spring Initializr
+## 5 Creazione progetto con Spring Initializr
 
 1. [Spring Initializr](https://start.spring.io/)
 
@@ -581,16 +581,13 @@ public class UserController {
 eliminare nel nome package il dash `-` nel nome.
 
 
-
-
-
 3. Crea un nuovo progetto con IntelliJ e incolla gli artefatti scaricati da spring initializr  
 
 
 ![Initializr](/img/2.png)
 
 
-3. tasto destro su pom.xml 
+3. tasto destro su `pom.xml`  click su `Generate` per generare le dipendenze
 
 
 
