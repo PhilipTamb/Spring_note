@@ -1007,14 +1007,15 @@ controlla la response
 ![Initializr](/img/7.png)
 
 10.
-implementiamo il secondo endpoint nella classe ChatController
+implementiamo il secondo endpoint nella classe `ChatController`
 
 
 
 11. 
-si può notare che la richiesta rimane appesa perchè stimo ricevedo  un flusso  e il client rimarrà in attesa fino a un EOF (end of file).
+si può notare che la richiesta rimane appesa perchè stiamo ricevedo  un flusso  e il client rimarrà in attesa fino a un EOF (end of file).
 
 
+```java
 package it.eng.corso.chatservice.controller;
 
 import it.eng.corso.chatservice.model.Message;
@@ -1043,15 +1044,17 @@ public class ChatController {
         return messageService.findByRoomId(roomId);
     }
 }
-
+```
 12.
-http://localhost:8080/chat
+`http://localhost:8080/chat`
+
+```json
 {
   "roomId":11,
   "sender":"Philip",
   "message":"Hii!"
 }
-
+```
 
 ![Initializr](/img/8.png)
 
