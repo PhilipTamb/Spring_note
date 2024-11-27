@@ -818,3 +818,244 @@ Insert into contatti(nome,numero_telefono) values ("Pippo", "3317658672");
 ![Initializr](/img/4.png)
 
 
+## 6 Programmazione Reattiva - progetto Chat Step-by-Step
+[Create a WebFlux application with Spring Boot](https://hantsy.github.io/spring-reactive-sample/start/boot-first.html)
+
+in mongoDB utliziamo dati in formato BSON (Binary Json)
+
+lombok viene utilizato per getter setter e per l'annotation @Data che si porta dietro getter setter  RequiredAgsConstrutor per la crezione del cotruttore, @allArgsConstructor crea un metodo costruttore con tutti gli argomenti o @NoArgsConstructor per l'opposto
+@toString
+@EqualsHashCoe
+
+
+nella programmazione Reactor non verrà creato un server Tomkat ma un server Netty
+
+1.
+![Initializr](/img/5.png)
+
+
+2. estrai file dallo zip e apri con Intellij
+
+`application.properties`
+```
+spring.application.name=chat-service
+spring.data.mongodb.uri: <mongodb_url>
+spring.data.mongodb.database=corso
+```
+
+3.  
+crea la folder `model` e dentro crea `Message`:
+
+`Message.java`
+```java
+package it.eng.corso.chatservice.model;
+
+import lombok.Getter;
+import lombok.Setter;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
+import java.time.LocalDateTime;
+
+@Getter
+@Setter
+@Document(collation = "chat") //alogo di Entity per i DB sql. specifichiamo la collection alla quale vogliamo connetterci
+public class Message {
+
+    @Id //specifichiamo l'id
+    private String id;
+    private Integer roomId;
+    private String sender;
+    private String message;
+    private LocalDateTime createAt;
+}
+```
+
+4.  
+
+crea folder `repository` e dentro `MessageRepository`
+
+`MessageRepository.java`
+```java
+
+package it.eng.corso.chatservice.service;
+
+import it.eng.corso.chatservice.model.Message;
+import it.eng.corso.chatservice.repository.MessageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+@Service
+public class MessageServiceImpl implements MessageService{
+
+    @Autowired
+    private MessageRepository messageRepository;
+
+    @Override
+    public Flux<Message> findByRoomId(Integer roomId){
+        return messageRepository.findByRoomId(roomId);
+    }
+    
+    @Override
+    public Mono<Message> save(Message message){
+        return messageRepository.save(message);
+    }
+}
+
+```
+
+
+in questo caso utilizzando mongoDb in modalità reattiva, questo non restituirà una lista ma un flusso. il flusso di dati dal db non verrà mai chiuso ma resterà attivo per la ricezione dei dati
+
+
+ 5. 
+
+crea la cartella service e dentro crea MessageService
+
+```java
+package it.eng.corso.chatservice.service;
+
+import it.eng.corso.chatservice.model.Message;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+public interface MessageService {
+
+    Flux<Message> findByRoomId(Integer roomId);
+
+    Mono<Message> save(Message message);
+}
+```
+
+
+6.
+Flux è un flusso (stream) di dati che può contenere zero o infiniti elementi, in questo modo l'elemento/classe che utilizza questo metodo resterà continuamente in attesa di elementi.
+esiste un'altro flusso chiamato Mono che contiene zero o un dato, in questo modo ricevuto un elemento non rimarrà niente in attesa che dal flusso arrivino altri elementi.
+
+
+crea MessageServiceImpl dentro service che implementerà l'interfaccia MessageService
+
+```java
+package it.eng.corso.chatservice.service;
+
+import it.eng.corso.chatservice.model.Message;
+import it.eng.corso.chatservice.repository.MessageRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+@Service
+public class MessageServiceImpl implements MessageService{
+
+    @Autowired
+    private MessageRepository messageRepository;
+
+    @Override
+    public Flux<Message> findByRoomId(Integer roomId){
+        return messageRepository.findByRoomId(roomId);
+    }
+
+    @Override
+    public Mono<Message> save(Message message){
+        return messageRepository.save(message);
+    }
+}
+```
+
+7.
+crea la folder controller e dentro ChatController
+
+```java
+package it.eng.corso.chatservice.controller;
+
+import it.eng.corso.chatservice.model.Message;
+import it.eng.corso.chatservice.service.MessageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RestController;
+import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
+
+@RestController
+public class ChatController {
+
+    @Autowired
+    private MessageService messageService;
+
+    @PostMapping("/chat")
+    public Mono<Message> save(@RequestBody Message message){
+        message.setCreateAt((LocalDateTime.now()) );
+        return messageService.save(message);
+    }
+}
+```
+
+8.
+manda un messaggio con un richiesta POST e il json all'interno del body
+
+![Initializr](/img/6.png)
+
+
+9.
+controlla la response
+
+![Initializr](/img/7.png)
+
+10.
+implementiamo il secondo endpoint nella classe ChatController
+
+
+
+11. 
+si può notare che la richiesta rimane appesa perchè stimo ricevedo  un flusso  e il client rimarrà in attesa fino a un EOF (end of file).
+
+
+package it.eng.corso.chatservice.controller;
+
+import it.eng.corso.chatservice.model.Message;
+import it.eng.corso.chatservice.service.MessageService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
+
+import java.time.LocalDateTime;
+
+@RestController
+public class ChatController {
+
+    @Autowired
+    private MessageService messageService;
+
+    @PostMapping("/chat")
+    public Mono<Message> save(@RequestBody Message message){
+        message.setCreateAt((LocalDateTime.now()) );
+        return messageService.save(message);
+    }
+    
+    @GetMapping("/chat/room/{roomId}")
+    public Flux<Message> findByRoomId(@PathVariable Integer roomId){
+        return messageService.findByRoomId(roomId);
+    }
+}
+
+12.
+http://localhost:8080/chat
+{
+  "roomId":11,
+  "sender":"Philip",
+  "message":"Hii!"
+}
+
+
+![Initializr](/img/8.png)
+
+
+
+
+
