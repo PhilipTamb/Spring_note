@@ -1059,6 +1059,28 @@ public class ChatController {
 ![Initializr](/img/8.png)
 
 
+## Lanciare un container con Mongo DB
+Docker & MongoDB
+
+* Per mantenere i dati anche se il container viene eliminato, mappa una directory del tuo host come volume:
+```bash
+docker run -d \
+  --name mongodb-container \
+  -p 27017:27017 \
+  -v /Users/pserafino/data:/data/db \
+  -e MONGO_INITDB_ROOT_USERNAME=admin \
+  -e MONGO_INITDB_ROOT_PASSWORD=password \
+  mongo
+```
+
+```bash
+podman pull docker.io/mongodb/mongodb-community-server:latest
+```
+C:\Users\ptambe\data
+
+podman run -d --name mongodb-container -p 27017:27017 -v /Users/pserafino/data:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password docker.io/mongodb/mongodb-community-server:latest
+
+podman run --detach --name todoDB -p 27017:27017 -v /Users/ptambe/data:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password docker.io/mongodb/mongodb-community-server:latest
 
 
 
