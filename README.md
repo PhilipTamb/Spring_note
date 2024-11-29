@@ -821,14 +821,16 @@ Insert into contatti(nome,numero_telefono) values ("Pippo", "3317658672");
 ## 6 Programmazione Reattiva - progetto Chat Step-by-Step
 [Create a WebFlux application with Spring Boot](https://hantsy.github.io/spring-reactive-sample/start/boot-first.html)
 
-in mongoDB utliziamo dati in formato BSON (Binary Json)
+> [!NOTE]
+> in mongoDB utliziamo dati in formato BSON (Binary Json)
 
-lombok viene utilizato per getter setter e per l'annotation @Data che si porta dietro getter setter  RequiredAgsConstrutor per la crezione del cotruttore, @allArgsConstructor crea un metodo costruttore con tutti gli argomenti o @NoArgsConstructor per l'opposto
-@toString
-@EqualsHashCoe
+> [!NOTE]
+> lombok viene utilizato per getter setter e per l'annotation @Data che si porta dietro @Getter @Setter  @RequiredAgsConstrutor per la > > crezione del costruttore, @allArgsConstructor crea un metodo costruttore con tutti gli argomenti o @NoArgsConstructor per l'opposto
+> @toString
+> @EqualsHashCoe
 
-
-nella programmazione Reactor non verrà creato un server Tomkat ma un server Netty
+> [!NOTE]
+> nella programmazione Reactor non verrà creato un server Tomkat ma un server Netty
 
 1.
 ![Initializr](/img/5.png)
