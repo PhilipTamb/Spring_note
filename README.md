@@ -1131,4 +1131,234 @@ Persisting Data
 podman run --name mysql-container -e MYSQL_ROOT_PASSWORD=my-secret-pwd -d -p 3306:3306 -v /path/on/host:/var/lib/mysql mysql:latest
 ```
 
-## Applicazione Step-by-Step
+## Applicazione Web Step-by-Step
+1.
+voglimo che il risultato sia una appllicazione web quindi vogliamo un artifact finale .war
+inizialmente non funzionerà perchè il punto war non sarà in un formato standard quindi dovremmo modificarlo.
+verrà creata una directory con una web app 
+le dipendenze iniziale sono le stesse di un app REST
+un applicazione web di spring dovrebbe trovarsi in spring initializer
+
+tuttavia intellij la cerca dentro le directory ....
+
+![Initializr](/img/10.png)
+
+![Initializr](/img/11.png)
+
+![Initializr](/img/12.png)
+
+2.
+resources> application.properties
+
+```java
+spring.application.name=book-web
+
+spring.datasource.url=jdbc:mysql://195.32.10.140:3306/corso
+spring.datasource.username=root
+spring.datasource.password=ginopino
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=none
+```
+
+3.
+Dentro src/main/java/it.eng.corso.book_web/ 
+creare le folder:
+`controller`
+`repository`
+`model`
+`service`
+
+importare lo stesso codice del cprogetto Book precedente
+
+4. 
+`model/Book.java`
+
+```java
+package it.eng.corso.book_web.model;
+
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+import jakarta.persistence.ManyToMany;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.OneToMany;
+import jakarta.persistence.OneToOne;
+import jakarta.persistence.Table;
+import lombok.Getter;
+import lombok.Setter;
+
+@Entity
+@Getter
+@Setter
+@Table()
+
+public class Book {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+    @Column(name = "autore")
+    private String author;
+    private Double price;
+
+}
+```
+
+
+5.
+`repository/BookRepository.java`
+
+```java
+package it.eng.corso.book_web.repository;
+
+import it.eng.corso.book_web.model.Book;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface BookRepository extends JpaRepository<Book,Long> {
+
+    List<Book> findByAuthorContainingIgnoreCase( String author );
+
+    List<Book> findByAuthor( String author );
+
+    @Query(value = "select b from Book b where b.author = ?1 and b.author = ?2 ", nativeQuery = true)
+    List<Book> findMiaQuery(String author, String param2 );
+
+
+    @Query("select b from Book b where b.author = :pippo and b.author = :param2 and b.author = :param3")
+    List<Book> findMiaQuery2(@Param("pippo") String author,@Param("param2") String param2,@Param("param3") String param3);
+
+
+    @Query(value = "select * from Book b where b.pippo = :pippo ", nativeQuery = true)
+    List<Book> findMiaQuery2(@Param("pippo") String author );
+}
+
+```
+
+6.
+`service/BookService.java`
+
+
+```java
+package it.eng.corso.book_web.service;
+
+import it.eng.corso.book_web.model.Book;
+
+import java.util.List;
+
+public interface BookService {
+
+    Book save(Book book);
+
+    List<Book> findAll();
+
+    List<Book> findByAuthor(String author );
+
+    Book findById( Long id );
+
+    void delete(Long id);
+
+    Book update(Long id, Book book);
+
+    Book partialUpdate(Long id, Book book);
+}
+```
+
+
+7. 
+`service/BookServiceImpl`
+
+
+```java
+package it.eng.corso.book_web.service;
+
+import it.eng.corso.book_web.model.Book;
+import it.eng.corso.book_web.repository.BookRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+
+@Service
+public class BookServiceImpl implements BookService {
+    @Autowired
+    private BookRepository bookRepository;
+
+    @Override
+    public Book save(Book book) {
+        return bookRepository.save( book );
+    }
+
+    @Override
+    public List<Book> findAll() {
+        return bookRepository.findAll();
+    }
+
+    @Override
+    public List<Book> findByAuthor(String author) {
+        return bookRepository.findByAuthorContainingIgnoreCase( author );
+    }
+
+    @Override
+    public Book findById(Long id) {
+        return bookRepository.findById(id).get();
+    }
+
+    @Override
+    public void delete(Long id) {
+        bookRepository.deleteById( id );
+    }
+
+    @Override
+    public Book update(Long id, Book book) {
+        Book bookToUpdate = bookRepository.findById( id ).get();
+
+        bookToUpdate.setAuthor(book.getAuthor());
+        bookToUpdate.setTitle(book.getTitle());
+        bookToUpdate.setPrice(book.getPrice());
+
+        return bookRepository.save( bookToUpdate );
+    }
+
+    @Override
+    public Book partialUpdate(Long id, Book book) {
+        Book bookToUpdate = bookRepository.findById( id ).get();
+
+        if(book.getAuthor()!=null)
+            bookToUpdate.setAuthor(book.getAuthor());
+        if(book.getTitle()!=null)
+            bookToUpdate.setTitle(book.getTitle());
+        if(book.getPrice()!=null)
+            bookToUpdate.setPrice(book.getPrice());
+
+        return bookRepository.save( bookToUpdate );
+    }
+
+}
+```
+8. 
+`controller/BookController.java`
+questo giro il nostro controller non avrà la notation @RestController ma è solo @Controller
+
+```java
+
+```
+
+```java
+
+```
+
+
+```java
+
+```
