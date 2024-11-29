@@ -1132,6 +1132,7 @@ podman run --name mysql-container -e MYSQL_ROOT_PASSWORD=my-secret-pwd -d -p 330
 ```
 
 ## Applicazione Web Step-by-Step
+[Serving JSP with Spring Boot 3](https://howtodoinjava.com/spring-boot/spring-boot-jsp-view-example/)
 1.
 voglimo che il risultato sia una appllicazione web quindi vogliamo un artifact finale .war
 inizialmente non funzionerà perchè il punto war non sarà in un formato standard quindi dovremmo modificarlo.
@@ -1140,6 +1141,7 @@ le dipendenze iniziale sono le stesse di un app REST
 un applicazione web di spring dovrebbe trovarsi in spring initializer
 
 tuttavia intellij la cerca dentro le directory ....
+[Enable Web application support](https://www.jetbrains.com/help/idea/enabling-web-application-support.html)
 
 ![Initializr](/img/10.png)
 
@@ -1162,7 +1164,7 @@ spring.jpa.hibernate.ddl-auto=none
 ```
 
 3.
-Dentro src/main/java/it.eng.corso.book_web/ 
+Dentro `src/main/java/it.eng.corso.book_web/`
 creare le folder:
 `controller`
 `repository`
@@ -1349,16 +1351,115 @@ public class BookServiceImpl implements BookService {
 8. 
 `controller/BookController.java`
 questo giro il nostro controller non avrà la notation @RestController ma è solo @Controller
+In questo non verrà più restituita la serializzazione in JSON di un oggetto o di una lista di oggetti ma restituirà una stringa che sarà il path della view da visualizzare.
+
+in questo caso il controller ottiene la lista di libri dal Service ma anzicchè serializzarli e restituirli cone un JSON, quello che fa è  fornire la lista dei books a model che fornirà una view dei libri.
 
 ```java
+    @GetMapping("/")
+    public String listBook(Model model){
+        model.addAttribute("books", bookService.findAll());
+        bookService.findAll();
+        return "home";   // home.jsp
+    }
+```
+la stringa del return --> return "home";   deve essere corrispondente a quella di un file home.jsp cosa che creeremo di seguito
+9. 
+sotto resources
+creare le cartelle annidate:
+`META_INF/resources/WEB_INF/views/`
+queste cartelle non aono accessibili dell'esterno
+dentro views creo
+`home.jsp`
 
+
+
+
+quando il nostro controller restituirà una stringa es `home` quello che Spring andrà a fare e concatenare a questa stringa il prefisso e il suffisso che andiamo a indicare nelle propierties 
+
+quindi andiamo in `resources/application.properties` e inseriamo
+```
+spring.mvc.view.prefix=/WEB-INF/views   --> troverai le views al path indicato
+spring.mvc.view.suffix=.jsp
 ```
 
-```java
+In questo modo quando facciamo 
+ `return "home";`  
+in realtà il path completo sarà
+`/WEB-INF/views/home.jsp`  
 
+
+
+
+```java
+<dependency>
+<groupId>org.apache.tomcat.embed</groupId>
+<artifactId>tomcat-embed-jasper</artifactId>
+<scope>provided</scope>
+</dependency>
+<!-- https://mvnrepository.com/artifact/org.glassfish.web/jakarta.servlet.jsp.jstl -->
+<dependency>
+<groupId>org.glassfish.web</groupId>
+<artifactId>jakarta.servlet.jsp.jstl</artifactId>
+<version>3.0.1</version>
+</dependency>
+<dependency>
+<groupId>jakarta.servlet.jsp.jstl</groupId>
+<artifactId>jakarta.servlet.jsp.jstl-api</artifactId>
+<version>3.0.0</version>
+</dependency>
+
+```
+> [!CAUTION]
+> potremmo ricevere questo errore
+>.resource.ResourceHandlerUtils  "Path with "WEB-INF" or "META-INF": [WEB-INF/views/home.jsp]"
+>
+> 1) una soluzione puo essere andare nel pom.xml e commentare  <!-- <scope>provided</scope>--> nella dipendenza di tomcat-embed-jasper
+>
+> 2) se non funziona inserire questa dipendenza
+> <dependency>
+>  <groupId>org.apache.tomcat</groupId>
+>  <artifactId>tomcat-jasper</artifactId>
+>  <version>${tomcat.version}</version>
+> </dependency>
+>
+> 4) crea in folder main una cartella webapp/WEB-INF/views e dentro sposta sposta home.jsp
+> 
+> 3) altrimenti vedi anche vedi anche [questo](https://stackoverflow.com/questions/29782915/spring-boot-jsp-404)
+
+
+
+```html
+<%@ taglib uri="http://java.sun.com/jsp/jstl/core" prefix="c" %>
+<html>
+<head><title>Books</title></head>
+<body>
+<h1>l'elenco dei miei books</h1>
+${books}
+</body>
+</html>
 ```
 
 
-```java
-
+```html
+<html>
+<head>
+    <title>Books</title>
+</head>
+<body>
+    <h1>L'elenco dei miei books</h1>
+    <table>
+        <tr>
+            <th>Autore</th>
+            <th>Titolo</th>
+        </tr>
+        <c:forEach items="${books}" var="book">
+            <tr>
+                <td>${book.author}</td>
+                <td>${book.title}</td>
+            </tr>
+        </c:forEach>
+    </table>
+</body>
+</html>
 ```
