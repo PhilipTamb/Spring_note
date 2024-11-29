@@ -1082,5 +1082,44 @@ podman run -d --name mongodb-container -p 27017:27017 -v /Users/pserafino/data:/
 
 podman run --detach --name todoDB -p 27017:27017 -v /Users/ptambe/data:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password docker.io/mongodb/mongodb-community-server:latest
 
+## Lanciare un container con MySQL
+[Deploy MySQL with podman](https://infotechys.com/deploying-mysql-using-podman/)
+Pulling the MySQL Image
+```bash
+podman pull mysql
+```
+
+Creating a MySQL Container
+```bash
+podman run --name mysql-container -e MYSQL_ROOT_PASSWORD=my-secret-pwd -d -p 3306:3306 mysql:latest
+```
+```bash
+ podman ps
+```
+
+Breaking down the command
+* --name mysql-container assigns a descriptive name to the container.
+* -e MYSQL_ROOT_PASSWORD=my-secret-pwd sets the root password for MySQL.
+* -d runs the container in detached mode.
+* -p 3306:3306 maps port 3306 from the container to port 3306 on the host, enabling external access to MySQL.
+
+Deploying MySQL Using Podman: Accessing the MySQL Database
+```bash
+podman exec -it mysql-container /bin/bash
+```
+
+```bash
+mysql -h localhost -p
+// Enter password:
+```
 
 
+```bash
+podman exec -it mysql-container mysql -u root -p
+```
+
+Persisting Data
+
+```bash
+podman run --name mysql-container -e MYSQL_ROOT_PASSWORD=my-secret-pwd -d -p 3306:3306 -v /path/on/host:/var/lib/mysql mysql:latest
+```
