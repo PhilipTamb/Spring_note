@@ -825,7 +825,9 @@ Insert into contatti(nome,numero_telefono) values ("Pippo", "3317658672");
 > in mongoDB utliziamo dati in formato BSON (Binary Json)
 
 > [!NOTE]
-> lombok viene utilizato per getter setter e per l'annotation @Data che si porta dietro @Getter @Setter  @RequiredAgsConstrutor per la > > crezione del costruttore, @allArgsConstructor crea un metodo costruttore con tutti gli argomenti o @NoArgsConstructor per l'opposto
+> `lombok` viene utilizato per getter setter e per l'annotation `@Data` che si porta dietro `@Getter` `@Setter` `@RequiredAgsConstrutor` > per la crezione del costruttore, `@allArgsConstructor` crea un metodo costruttore con tutti gli argomenti o `@NoArgsConstructor` per
+>  fare l'opposto.
+> Abbiamo anche:
 > @toString
 > @EqualsHashCoe
 
@@ -908,14 +910,14 @@ public class MessageServiceImpl implements MessageService{
 
 ```
 
-
-in questo caso utilizzando mongoDb in modalità reattiva, questo non restituirà una lista ma un flusso. il flusso di dati dal db non verrà mai chiuso ma resterà attivo per la ricezione dei dati
+In questo caso utilizzando mongoDb in modalità reattiva, questo non restituirà una lista ma un flusso. il flusso di dati dal db non verrà mai chiuso ma resterà attivo per la ricezione dei dati
 
 
  5. 
 
-crea la cartella service e dentro crea MessageService
+crea la cartella service e dentro crea `MessageService`
 
+ `MessageService.java`
 ```java
 package it.eng.corso.chatservice.service;
 
@@ -933,12 +935,13 @@ public interface MessageService {
 
 
 6.
-Flux è un flusso (stream) di dati che può contenere zero o infiniti elementi, in questo modo l'elemento/classe che utilizza questo metodo resterà continuamente in attesa di elementi.
+`Flux` è un flusso (stream) di dati che può contenere zero o infiniti elementi, in questo modo l'elemento/classe che utilizza questo metodo resterà continuamente in attesa di elementi.
 esiste un'altro flusso chiamato Mono che contiene zero o un dato, in questo modo ricevuto un elemento non rimarrà niente in attesa che dal flusso arrivino altri elementi.
 
 
-crea MessageServiceImpl dentro service che implementerà l'interfaccia MessageService
+crea `MessageServiceImpl` dentro service che implementerà l'interfaccia `MessageService`
 
+`MessageServiceImpl.java`
 ```java
 package it.eng.corso.chatservice.service;
 
@@ -968,8 +971,9 @@ public class MessageServiceImpl implements MessageService{
 ```
 
 7.
-crea la folder controller e dentro ChatController
+crea la folder `controller` e dentro `ChatController`
 
+`ChatController.java`
 ```java
 package it.eng.corso.chatservice.controller;
 
@@ -1016,7 +1020,7 @@ implementiamo il secondo endpoint nella classe `ChatController`
 11. 
 si può notare che la richiesta rimane appesa perchè stiamo ricevedo  un flusso  e il client rimarrà in attesa fino a un EOF (end of file).
 
-
+`ChatController.java`
 ```java
 package it.eng.corso.chatservice.controller;
 
