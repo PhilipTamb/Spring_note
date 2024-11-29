@@ -1082,12 +1082,13 @@ docker run -d \
 ```bash
 podman pull docker.io/mongodb/mongodb-community-server:latest
 ```
-C:\Users\ptambe\data
 
+```bash
 podman run -d --name mongodb-container -p 27017:27017 -v /Users/pserafino/data:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password docker.io/mongodb/mongodb-community-server:latest
-
+```
+```bash
 podman run --detach --name todoDB -p 27017:27017 -v /Users/ptambe/data:/data/db -e MONGO_INITDB_ROOT_USERNAME=admin -e MONGO_INITDB_ROOT_PASSWORD=password docker.io/mongodb/mongodb-community-server:latest
-
+```
 ## Lanciare un container con MySQL
 [Deploy MySQL with podman](https://infotechys.com/deploying-mysql-using-podman/)
 Pulling the MySQL Image
@@ -1129,3 +1130,5 @@ Persisting Data
 ```bash
 podman run --name mysql-container -e MYSQL_ROOT_PASSWORD=my-secret-pwd -d -p 3306:3306 -v /path/on/host:/var/lib/mysql mysql:latest
 ```
+
+## Applicazione Step-by-Step
