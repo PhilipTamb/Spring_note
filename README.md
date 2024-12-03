@@ -1495,6 +1495,13 @@ le API richieste:
 1. 
 ![Initializr](/img/13.png)
 
+```mysql
+use philip_db;
+
+create table tasks(longint id NOT NULL AUTO_INCREMENT PRIMARY KEY, VARCHAR(255) title , VARCHAR(255) description, boolean completed);
+
+insert into tasks(title, description, completed) values ("mio task", "descrizione del task", false);
+```
 
 2. creazione cartelle:
    * model
@@ -1762,8 +1769,34 @@ public class TaskController {
 
 8. ### Creiamo un Exception Handler
 
+   creiamo una nuova directory exception e dentro andiamo a creare la classe per gestire la nostra famgilia di eccezioni e che estenderà Runtime Exception
+```java
+package it.eng.corso.task_service.exception;
+
+public class NoDataFoundException  extends RuntimeException{
+}
+
+```
+   
+/controller/TaskCOntroller.java
 ```java
 
+
+
+....
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Object> exception(NoSuchElementException e){
+        HashMap<String, Object> body = new HashMap<>();
+
+        body.put("timestamp", LocalDateTime.now());
+        body.put("Error_Code","500");
+        body.put("message", e.getMessage() + "contattare l'assistenza");
+
+        e.printStackTrace();
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+...
 ```
 8. 
 ### Exeption Handler
@@ -2136,5 +2169,353 @@ stessa cosa in service/BookSErvice.java
 ```
 
 
+## Review Project Step-By-Step
+
+id : book uuid
+stars: 1-to-5
+
+il controller salva una nuova recensione
+
+![Initializr](/img/19.png)
+
+2. creazione cartelle:
+   * model
+   * service
+   * repository
+   * controller
+   * tdo
+
+3. resources/application.proprierties
+   con ddl-auto=true se jpa non trova la tabella la va a creare 
+jpa va a creare la tabella anche se il DB esiste ma le colonne non matchano perfettamente ai nomi dell'Entity che sono quelli che si aspettadi trovare
+
+```java
+spring.application.name=review-service
+
+spring.datasource.url=jdbc:mysql://197.0.0.1:3306/philip_db
+spring.datasource.username=root
+spring.datasource.password=mypsw
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=none
+```
+
+4. 
+```mysql
+use philip_db;
+
+show databases;
+
+DROP TABLE IF EXISTS  reviews;
+
+create table reviews( id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY , created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, starts FLOAT, uuid VARCHAR(255), uuid_book VARCHAR(255) );
+```
+5. 
+@CreationTimestamp
+private LocalDataTime createdAt; // questo attributo viene inizializzato da @Creation Timestamp quando viene creato l'oggetto
+
+@UpdateTimestamp // valorizza l'attibuto quando viene aggiornato l'oggetto, questo viene valorizzato di hibernate
+
+model/Review.java
+```java
+package it.eng.corso.review_service.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
+import java.util.UUID;
+
+@Entity
+@Getter
+@Setter
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+@Table(name = "reviews")
+public class Review {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY )
+    private Long id;
+    private String uuid;
+    @Column(name = "uuid_book")
+    private String uuidBook;
+    @Column(name = "stars")
+    private double stars;
+
+    @CreationTimestamp
+    @Column(name = "created_at")
+    private LocalDateTime createdAt;
+}
+```
+
+6. 
+dto/ReviewDTO.java
+```java
+package it.eng.corso.review_service.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
+
+@Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
+public class ReviewDTO {
+    private String uuid;
+    private String uuidBook;
+    private double stars;
+
+    private LocalDateTime createdAt;
+}
+```
+
+7.
+repository/ReviewRepository.java
+```java
+package it.eng.corso.review_service.repository;
+
+import it.eng.corso.review_service.model.Review;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
+
+import java.util.List;
+
+@Repository
+public interface ReviewRepository extends JpaRepository<Review, Long> {
+
+     List<Review> findByUuidBook(String uuidBook);
+
+     Review findByUuid(String uuid);
+}
+```
+
+8.
+
+service/ReviewService.java
+```java
+package it.eng.corso.review_service.service;
+
+import it.eng.corso.review_service.dto.ReviewDTO;
+
+
+public interface ReviewService  {
+
+    ReviewDTO save(ReviewDTO review);
+
+    Double average(String uuidBook);
+}
+```
+
+9.
+
+service/ReviewServiceImpl.java
+```java
+package it.eng.corso.review_service.service;
+
+import it.eng.corso.review_service.dto.ReviewDTO;
+import it.eng.corso.review_service.model.Review;
+import it.eng.corso.review_service.repository.ReviewRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.List;
+import java.util.UUID;
+
+@Service
+public class ReviewServiceImpl implements ReviewService {
+
+    @Autowired
+    private ReviewRepository reviewRepository;
+
+    @Autowired
+    private WebClient webClient;
+
+    @Override
+    public ReviewDTO save(ReviewDTO review){
+        review.setUuid(String.valueOf(UUID.randomUUID()));
+        return modelToDto(reviewRepository.save(dtoToModel(review)));
+    }
+
+    @Override
+    public Double average(String uuidBook){
+        return reviewRepository.findByUuidBook(uuidBook)
+                .stream()
+                .map(Review::getStars)
+                .mapToDouble(Double::doubleValue)
+                .average()
+                .orElse(0D); // se c'è un errore restituirò zero
+    }
+
+
+    private Review dtoToModel(ReviewDTO review){
+        return Review.builder()
+                .uuid(review.getUuid())
+                .uuidBook(review.getUuidBook())
+                .stars(review.getStars())
+                .createdAt(review.getCreatedAt())
+                .build();
+    }
+
+    private ReviewDTO modelToDto(Review review){
+        return ReviewDTO.builder()
+                .uuid(review.getUuid())
+                .uuidBook(review.getUuidBook())
+                .stars(review.getStars())
+                .createdAt(review.getCreatedAt())
+                .build();
+    }
+}
+```
+
+10.
+
+
+controller/ReviewController.java
+```java
+package it.eng.corso.review_service.controller;
+
+import it.eng.corso.review_service.dto.ReviewDTO;
+import it.eng.corso.review_service.service.ReviewService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+@RestController
+@RequestMapping("/api/v1/reviews")
+public class ReviewController {
+
+    @Autowired
+    private ReviewService reviewService;
+
+    @PostMapping
+    public ReviewDTO save(@RequestBody ReviewDTO review){ // il nostro json viaggia nel body della request
+        return reviewService.save(review);
+    }
+
+    @GetMapping("/avarage")
+    public Double save(@RequestParam String uuidBook){ //il parametro viaggia nella query string dopo il path della richiesta con (/reviews/avarage?uuidBook=<id-book>)
+        return reviewService.average(uuidBook);
+    }
+}
+```
+
+11.
+facciamo muna save 
+
+```json
+HTTP POST
+http://localhost:8080/api/v1/reviews
+
+{
+     "uuid_book" :  "5345-42424-424234-42323",
+     "stars" : 4
+}
+
+
+Return:
+{"uuid":"1004187d-39f1-48d0-89f7-4cdd8d04c752","uuidBook":null,"stars":4.0,"createdAt":"2024-12-03T15:02:59.012467"}
+```
+
+```java
+
+
+```
+
+### creiamo config folder 
+poi WebClientConfig
+```java
+package it.eng.corso.review_service.config;
+
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
+
+public class WebClientConfig {
+
+
+    @Bean // per inserire questo elemento all'interno dell'application context , ovvero dice a spring creami un instanza di una diependeza
+    public WebClient getWebClient() {
+        return WebClient.builder().build();
+    }
+}
+```
+
+e nel pom.xml inseriamo
+```xml 
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+
+```
+
+andando in 
+dto/BooKDTO.java andiamo ad inserire  `private Double stars;` per avere informazioni sulle recensione medie di un determinato libro
+```java
+@Data
+@Builder
+@NoArgsConstructor // viene creato un costruttore con nessun parametro
+@AllArgsConstructor  // viene creato un costruttore con tutti i parametri
+public class BookDTO {
+    private String uuid;
+    private String title;
+    private String author;
+    private Double price;
+
+    private Double stars;
+}
+```
+
+ dopo aver cercato il book dalla nostra base dati 
+andiamo ad arricchire il nostro book andando a recuperare i dati da un'altro microservizio
+ attraverso il webClient
+
+andando in service/BookServiceImpl.java possiamo andare a inserire un WebClient che va a fare una richiesta GET ad un determinato endpoint, 
+passiamo la uri su cui fare la richiesta
+passiamo il queryParam che il ReviewsController richiede per andare a rechiamare la la "average" API
+il risultato viene inserito all'interno di un canale mono
+e con block() lo rendiamo bloccante  in modo che il thread principale resta in attesa della risposta sul mono a seguito della richiesta del WebClient
+```java
+    @Override
+    public BookDTO findByUuid(String uuid) {
+        BookDTO ret = modelToDTO(    bookRepository.findByUuid(uuid).get());
+
+    ret.setStars(
+            webClient.get() //il web client ci sta permettendo di fare una richiesta ad una particolare endpoint
+                    .uri("http://localhost:8080/api/v1/reviews/average"
+                    ,uriBuilder -> uriBuilder.queryParam("uuidBook", uuid).build())
+                    .retrive()
+                    .boduToMono(Double.class)
+                    .block() 
+    );
+        return ret;
+    }
+```
+
+qui abbiamo la limitazione che stimao scolpendo l'endpoint ip e porta del microservizio 
+questo problema può essere risolto attraverso un discoveryService dove i microservizzi si andranno a registrare e ogni microservizio verrà individuato da un nome e non da un endpoint.
+
+inoltre per aumentare la scalabilità non setto una porta fissa per un determinato servizio, altrimenti diversi microservizi andrebbero a collidere. 
+
+
+per fare ciò necessitiamo nel servizio book-service
+pom.xml
+```xml
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-webflux</artifactId>
+		</dependency>
+```
+
+![Initializr](/img/20.png)
+
+A questo punto facendo una richiesta per recuperare un book dall'id ci accorgiamo che ome oggetto di ritorno otterremo un oggetto con il campo stars valorizzato con il valore medio
 ## Reference
 [A closer look at Spring proxies](https://ntsim.uk/posts/a-closer-look-at-spring-proxies#why-is-this-useful)
