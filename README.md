@@ -1962,9 +1962,13 @@ in questo modo ad esempio eseguiamo alle 3 di notte
 vogliamo nascondere dal DB le chiamate che permettono di recuperare le informazione della nostra applicazione che non sono strettamente necessarie da esporre. 
 capendo ad esempio che gli id sono progressivi e avedo accesso alle informazioni tramite gli id potrei recuperare info di altri utenti.
 
-uuid lo andiamo al valorizzare prima del savataggio nel db della nostra Entity.
+`uuid` lo andiamo al valorizzare prima del savataggio nel db della nostra Entity.
 
 ```java
+import java.util.UUID;
+
+....
+
 @Override
 public Book save(Book book) {
 	book.setUuid(String.valueOf(UUID.randomUUID());
@@ -1991,16 +1995,33 @@ Utilizzo il [DTO](https://www.baeldung.com/java-dto-pattern) come oggetto per pa
 
 ![Initializr](/img/layers-4.svg)
 
+
+creiamo la caterlla dto sotto main e poi la classe dto per la nostra entity
+
+`/dto/BookDTO.java`
 ```java
+package it.eng.corso.bookservice.dto;
 
+import lombok.Builder;
+import lombok.Data;
 
+@Data
+@Builder
+@NoArgsContructor // viene creato un costruttore con nessun parametro
+@AllArgsCOntructor  // viene creato un costruttore con tutti i parametri
+public class BookDTO {
+    private String uuid;
+    private String title;
+    private String author;
+    private Double price;
+}
 ```
 
 nella nostra entity inseriamo questi 2 annotation
-@NoArgsContructor // viene creato un costruttore con nessun parametro
-@AllArgsCOntructor  // viene creato un costruttore con tutti i parametri
+`@NoArgsContructor`  abilita alla creazione di un costruttore con nessun parametro
+`@AllArgsCOntructor`  abilita alla creazione di un costruttore con tutti i parametri
 
-model/Book.java
+`model/Book.java`
 ```java
 package it.eng.corso.bookservice.model;
 
@@ -2015,13 +2036,102 @@ import ...
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
+    private String uuid;
     private String title;
     @Column(name = "autore")
     private String author;
     private Double price;
 }
+```
+
+a questo punto il presentation layer e il business layer si devono scambiare solo BookDTO
+quindi ad esempio nel controller inseriamo 
+
+import it.eng.corso.bookservice.dto.BookDTO;
+ed eliminiamo
+import it.eng.corso.bookservice.model.Book;
+
+/controller/BookController.java
+```java
+package it.eng.corso.bookservice.controller;
+
+import it.eng.corso.bookservice.dto.BookDTO;
+import it.eng.corso.bookservice.service.BookService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PatchMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/api/v1/books")
+public class BookController {
+
+    @Autowired
+    private BookService bookService;
+
+    @GetMapping
+    public List<BookDTO> findAll( ){
+        return bookService.findAll();
+    }
+
+    @GetMapping("/search")
+    public List<BookDTO> findByAuthor(@RequestParam String author ){
+        return bookService.findByAuthor( author );
+    }
+
+    @GetMapping("/{id}")
+    public BookDTO findById( @PathVariable Long id ){
+        return bookService.findById( id );
+    }
+
+    @PostMapping
+    public BookDTO save( @RequestBody BookDTO book ){
+        return bookService.save( book );
+    }
+
+    @PutMapping("/{id}")
+    public BookDTO update( @PathVariable Long id, @RequestBody BookDTO book ){
+        return bookService.update(id, book );
+    }
+
+    @PatchMapping("/{id}")
+    public BookDTO partialUpdate( @PathVariable Long id, @RequestBody BookDTO book ){
+        return bookService.partialUpdate(id, book );
+    }
+
+
+    @DeleteMapping("/{id}")
+    public void delete( @PathVariable Long id ){
+        bookService.delete( id );
+    }
+
+}
+
+```
+stessa cosa in service/BookSErvice.java
+
+```java
+
+```
+
+
+
+```java
+
+```
+
+
+
+```java
 
 ```
 
