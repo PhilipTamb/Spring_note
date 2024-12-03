@@ -1563,8 +1563,6 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
 ```java
 package it.eng.corso.task_service.service;
 
-
-
 import it.eng.corso.task_service.model.Task;
 import org.springframework.data.jpa.repository.Query;
 
@@ -1573,20 +1571,12 @@ import java.util.List;
 public interface TaskService {
 
     List<Task> getAllTasks();
-
     Task getTaskById(Long id);
-
     Task saveTask(Task task);
-
     Task updateTask(Task task, Long id);
-
     Task updateCompletedTask(Task task, boolean completed );
-
     void deleteTask(long id);
-
-
     List<Task> getTaskByCompleted(boolean completed);
-
 }
 ```
 
@@ -1969,24 +1959,26 @@ in questo modo ad esempio eseguiamo alle 3 di notte
     
 ### HTTP Request
 
-1) GET http://localhost:8080/api/v1/tasks
+1) GET `http://localhost:8080/api/v1/tasks`
 
-2) GET http://localhost:8080/api/v1/tasks/1
+2) GET `http://localhost:8080/api/v1/tasks/1`
 
-3) POST http://localhost:8080/api/v1/tasks
+3) POST `http://localhost:8080/api/v1/tasks`
+```json
 {
     "title" : "my bsest task",
     "description" : "my beautifull task",
     "completed" : false
 }
-
-4) PUT http://localhost:8080/api/v1/tasks/3
+```
+4) PUT `http://localhost:8080/api/v1/tasks/3`
+```json
 {
     "title" : "my thirth task",
     "description" : "less is more, less is better",
     "completed" : false
 }
-
+```
 ### Transactional
 @Transactional serve a gestire le transazioni ACID
 
@@ -2080,11 +2072,11 @@ public class Book {
 a questo punto il presentation layer e il business layer si devono scambiare solo BookDTO
 quindi ad esempio nel controller inseriamo 
 
-import it.eng.corso.bookservice.dto.BookDTO;
+`import it.eng.corso.bookservice.dto.BookDTO;`
 ed eliminiamo
-import it.eng.corso.bookservice.model.Book;
+`import it.eng.corso.bookservice.model.Book;`
 
-/controller/BookController.java
+`/controller/BookController.java`
 ```java
 package it.eng.corso.bookservice.controller;
 
@@ -2150,7 +2142,7 @@ public class BookController {
 }
 
 ```
-stessa cosa in service/BookSErvice.java
+stessa cosa in service/BookService.java
 
 ```java
 
@@ -2186,7 +2178,7 @@ il controller salva una nuova recensione
    * tdo
 
 3. resources/application.proprierties
-   con ddl-auto=true se jpa non trova la tabella la va a creare 
+   con `ddl-auto=true` se jpa non trova la tabella la va a creare 
 jpa va a creare la tabella anche se il DB esiste ma le colonne non matchano perfettamente ai nomi dell'Entity che sono quelli che si aspettadi trovare
 
 ```java
@@ -2211,12 +2203,16 @@ DROP TABLE IF EXISTS  reviews;
 create table reviews( id bigint NOT NULL AUTO_INCREMENT PRIMARY KEY , created_at  DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP, starts FLOAT, uuid VARCHAR(255), uuid_book VARCHAR(255) );
 ```
 5. 
+la notation `@CreationTimestamp` inizializza l'attributo sul quale è dichiarato con il timestamp della creazione dell'ogetto
+```
 @CreationTimestamp
-private LocalDataTime createdAt; // questo attributo viene inizializzato da @Creation Timestamp quando viene creato l'oggetto
+private LocalDataTime createdAt;
+```
+creato l'oggetto
 
-@UpdateTimestamp // valorizza l'attibuto quando viene aggiornato l'oggetto, questo viene valorizzato di hibernate
+`@UpdateTimestamp` valorizza l'attibuto quando viene aggiornato l'oggetto, questo viene valorizzato di hibernate
 
-model/Review.java
+`model/Review.java`
 ```java
 package it.eng.corso.review_service.model;
 
@@ -2251,7 +2247,7 @@ public class Review {
 ```
 
 6. 
-dto/ReviewDTO.java
+`dto/ReviewDTO.java`
 ```java
 package it.eng.corso.review_service.dto;
 
@@ -2277,7 +2273,7 @@ public class ReviewDTO {
 ```
 
 7.
-repository/ReviewRepository.java
+`repository/ReviewRepository.java`
 ```java
 package it.eng.corso.review_service.repository;
 
@@ -2298,7 +2294,7 @@ public interface ReviewRepository extends JpaRepository<Review, Long> {
 
 8.
 
-service/ReviewService.java
+`service/ReviewService.java`
 ```java
 package it.eng.corso.review_service.service;
 
@@ -2315,7 +2311,7 @@ public interface ReviewService  {
 
 9.
 
-service/ReviewServiceImpl.java
+`service/ReviewServiceImpl.java`
 ```java
 package it.eng.corso.review_service.service;
 
@@ -2378,7 +2374,7 @@ public class ReviewServiceImpl implements ReviewService {
 10.
 
 
-controller/ReviewController.java
+`controller/ReviewController.java`
 ```java
 package it.eng.corso.review_service.controller;
 
@@ -2407,7 +2403,7 @@ public class ReviewController {
 ```
 
 11.
-facciamo muna save 
+facciamo una HTTP Request che richiama il save() 
 
 ```json
 HTTP POST
@@ -2423,13 +2419,9 @@ Return:
 {"uuid":"1004187d-39f1-48d0-89f7-4cdd8d04c752","uuidBook":null,"stars":4.0,"createdAt":"2024-12-03T15:02:59.012467"}
 ```
 
-```java
-
-
-```
-
-### creiamo config folder 
-poi WebClientConfig
+### Crezione di un WebClient 
+creiamo `config` folder 
+poi creiamo `WebClientConfig.java`
 ```java
 package it.eng.corso.review_service.config;
 
@@ -2457,7 +2449,7 @@ e nel pom.xml inseriamo
 ```
 
 andando in 
-dto/BooKDTO.java andiamo ad inserire  `private Double stars;` per avere informazioni sulle recensione medie di un determinato libro
+`dto/BooKDTO.java` andiamo ad inserire  `private Double stars;` per avere informazioni sulle recensione medie di un determinato libro
 ```java
 @Data
 @Builder
@@ -2477,26 +2469,160 @@ public class BookDTO {
 andiamo ad arricchire il nostro book andando a recuperare i dati da un'altro microservizio
  attraverso il webClient
 
-andando in service/BookServiceImpl.java possiamo andare a inserire un WebClient che va a fare una richiesta GET ad un determinato endpoint, 
+andando in `service/BookServiceImpl.java` possiamo andare a inserire un `WebClient` che va a fare una richiesta GET ad un determinato endpoint, 
 passiamo la uri su cui fare la richiesta
-passiamo il queryParam che il ReviewsController richiede per andare a rechiamare la la "average" API
+passiamo il `queryParam` che il `ReviewsController` richiede per andare a rechiamare la la "average" API
 il risultato viene inserito all'interno di un canale mono
-e con block() lo rendiamo bloccante  in modo che il thread principale resta in attesa della risposta sul mono a seguito della richiesta del WebClient
+e con `block()` lo rendiamo bloccante  in modo che il thread principale resta in attesa della risposta sul mono a seguito della richiesta del WebClient
+
+per fare questo dichiariamo un `WebCLient`
+```java
+    @Autowired
+    private WebClient webClient;
+```
+
 ```java
     @Override
     public BookDTO findByUuid(String uuid) {
         BookDTO ret = modelToDTO(    bookRepository.findByUuid(uuid).get());
+        // dopo aver cercato il book dalla nostra base dati
+        //andiamo ad arricchire il nostro book andando a recuperare i dati da un'altro microservizio
+        // attraverso il webClient
 
     ret.setStars(
             webClient.get() //il web client ci sta permettendo di fare una richiesta ad una particolare endpoint
                     .uri("http://localhost:8080/api/v1/reviews/average"
                     ,uriBuilder -> uriBuilder.queryParam("uuidBook", uuid).build())
-                    .retrive()
-                    .boduToMono(Double.class)
-                    .block() 
+                    .retrieve()
+                    .bodyToMono(Double.class)
+                    .block() // stiamo bloccando il servio in maniera bloccante
+            //il thread principale resta in attesa della risposta sul mono a seguito della richiesta del WebClient
     );
         return ret;
     }
+```
+    
+```java
+
+
+package it.eng.corso.bookservice.service;
+
+import it.eng.corso.bookservice.dto.BookDTO;
+import it.eng.corso.bookservice.model.Book;
+import it.eng.corso.bookservice.repository.BookRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
+
+@Service
+public class BookServiceImpl implements BookService {
+    @Autowired
+    private BookRepository bookRepository;
+
+    @Autowired
+    private WebClient webClient;
+
+    @Override
+    public BookDTO save(BookDTO book) {
+
+        book.setUuid(String.valueOf(UUID.randomUUID()));
+        return modelToDTO(bookRepository.save(  dtoToModel(book)));
+
+    }
+
+//    @Override
+//    public Optional<Book> findByUuid(String uuid){
+//        return modelToDTO( bookRepository.findByUuid(uuid).orElseThrow());
+//    }
+
+    @Override
+    public List<BookDTO> findAll() {
+
+        return bookRepository.findAll()
+                .stream()  // prendo uno streamo
+                .map(this::modelToDTO) // passo ogni elemento dello stream alla funzione model to DTO e ottengo uno oggetto DTO
+                .toList();
+    }
+
+    @Override
+    public List<BookDTO> findByAuthor(String author) {
+        return bookRepository.findByAuthorContainingIgnoreCase( author )
+                .stream()  // prendo uno streamo
+                .map(this::modelToDTO) // passo ogni elemento dello stream alla funzione model to DTO e ottengo uno oggetto DTO
+                .toList();
+    }
+
+    @Override
+    public BookDTO findByUuid(String uuid) {
+        BookDTO ret = modelToDTO(    bookRepository.findByUuid(uuid).get());
+        // dopo aver cercato il book dalla nostra base dati
+        //andiamo ad arricchire il nostro book andando a recuperare i dati da un'altro microservizio
+        // attraverso il webClient
+
+    ret.setStars(
+            webClient.get() //il web client ci sta permettendo di fare una richiesta ad una particolare endpoint
+                    .uri("http://localhost:8080/api/v1/reviews/average"
+                    ,uriBuilder -> uriBuilder.queryParam("uuidBook", uuid).build())
+                    .retrieve()
+                    .bodyToMono(Double.class)
+                    .block() // stiamo bloccando il servio in maniera bloccante
+            //il thread principale resta in attesa della risposta sul mono a seguito della richiesta del WebClient
+    );
+        return ret;
+    }
+
+    @Override
+    public void delete(String uuid) {
+        Book bookToDelete = bookRepository.findByUuid(uuid).orElseThrow();
+        bookRepository.delete( bookToDelete );
+    }
+
+    @Override
+    public BookDTO update(String uuid, BookDTO book) {
+        BookDTO bookToUpdate = bookRepository.findByUuid( uuid ).get();
+        bookToUpdate.setAuthor(book.getAuthor());
+        bookToUpdate.setTitle(book.getTitle());
+        bookToUpdate.setPrice(book.getPrice());
+
+        return modelToDTO(bookRepository.save(  dtoToModel(book)));
+    }
+
+    @Override
+    public BookDTO partialUpdate(String uuid, BookDTO book) {
+        BookDTO bookToUpdate = bookRepository.findByUuid( uuid ).get();
+
+        if(book.getAuthor()!=null)
+            bookToUpdate.setAuthor(book.getAuthor());
+        if(book.getTitle()!=null)
+            bookToUpdate.setTitle(book.getTitle());
+        if(book.getPrice()!=null)
+            bookToUpdate.setPrice(book.getPrice());
+
+        return modelToDTO(bookRepository.save(  dtoToModel(book)));
+    }
+
+    private Book dtoToModel ( BookDTO book){
+        return Book.builder()
+                .uuid(book.getUuid())
+                .title(book.getTitle())
+                .author(book.getAuthor())
+                .price(book.getPrice())
+                .build();
+    }
+
+    private BookDTO modelToDTO ( Book book){
+        return BookDTO.builder()
+                .uuid(book.getUuid())
+                .title(book.getTitle())
+                .author(book.getAuthor())
+                .price(book.getPrice())
+                .build();
+    }
+}
 ```
 
 qui abbiamo la limitazione che stimao scolpendo l'endpoint ip e porta del microservizio 
