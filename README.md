@@ -1464,3 +1464,567 @@ ${books}
 </body>
 </html>
 ```
+
+## Gestione task Step-by-Step
+
+[Spring Boot REST API CRUD Operations with MySQL](https://medium.com/@Lakshitha_Fernando/spring-boot-rest-api-crud-operations-with-mysql-6f4e81382edc)
+
+
+# realizzare un servizio REST per la gestione di Task
+ 
+gli attributi del task sono:
+id (Long)
+title (String)
+description (String)
+completed (Boolean)
+ 
+Implementare gli endpoints per:
+Creare, leggere, aggiornare e cancellare (CRUD) tasks
+restituire una lista di tutti i task
+restituire una lista di quelli completati 
+restituire una lista di quelli non ancora completati
+ 
+le API richieste:
+	•	POST /api/v1/tasks: Crea un nuovo task.
+	•	GET /api/v1/tasks: Elenco di tutti i task.
+	•	GET /api/v1/tasks/{id}: Dettaglio di un task.
+	•	PUT /api/v1/tasks/{id}: Aggiorna i dettagli di un task.
+	•	DELETE /api/v1/tasks/{id}: Cancella un task.
+	•	GET /api/v1/tasks?completed=true/false: Filtra i task in base allo stato.
+ 
+1. 
+![Initializr](/img/13.png)
+
+
+2. creazione cartelle:
+   * model
+   * service
+   * repository
+   * controller
+
+3. model/Task.java
+
+```java
+package it.eng.corso.task_service.model;
+
+import jakarta.persistence.*;
+import lombok.*;
+import org.antlr.v4.runtime.misc.NotNull;
+
+@Getter
+@Setter
+@Entity
+@Table(name = "tasks")
+public class Task {
+
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(length = 255, nullable = false)
+    private String title;
+
+    @Column(length = 255, nullable = false)
+    private String description;
+
+    @NotNull
+    private boolean completed;
+}
+```
+
+4. repository/TaskRepository
+
+```java
+package it.eng.corso.task_service.repository;
+
+import it.eng.corso.task_service.model.Task;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+
+import java.util.List;
+
+public interface TaskRepository extends JpaRepository<Task, Long> {
+
+    @Query(value = "Select * from tasks t where t.completed = :completed", nativeQuery = true)
+    List<Task> getTaskByCompleted(@Param("completed") boolean completed);
+}
+```
+
+5. service/TaskService
+
+```java
+package it.eng.corso.task_service.service;
+
+
+
+import it.eng.corso.task_service.model.Task;
+import org.springframework.data.jpa.repository.Query;
+
+import java.util.List;
+
+public interface TaskService {
+
+    List<Task> getAllTasks();
+
+    Task getTaskById(Long id);
+
+    Task saveTask(Task task);
+
+    Task updateTask(Task task, Long id);
+
+    Task updateCompletedTask(Task task, boolean completed );
+
+    void deleteTask(long id);
+
+
+    List<Task> getTaskByCompleted(boolean completed);
+
+}
+```
+
+6. service/TaskServiceImpl
+
+```java
+package it.eng.corso.task_service.service;
+
+import it.eng.corso.task_service.model.Task;
+import it.eng.corso.task_service.repository.TaskRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.CacheManager;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.interceptor.SimpleKey;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Optional;
+
+@Service
+public class TaskServiceImpl implements TaskService {
+
+    @Autowired
+    private TaskRepository taskRepository;
+
+    @Autowired
+    private CacheManager cacheManager;
+
+    //save task in db
+    @Override
+    public Task saveTask(Task task){
+        cacheManager.getCache("tasks").evict(SimpleKey.EMPTY); // elimina tutti gli elemneti TasK in cache che hanno una key vuota
+        return taskRepository.save(task);
+    }
+
+    @Override
+    @Cacheable("tasks") // inserendo qui cachable una volta che viene fatta la query per la prima volta, i dati vengono coservati nell cahce e quindi, quando la funzione viene richiamata in seguito, non verrà lanciata la cache ma i dati verranno recuperati dalla cache
+    public List<Task> getAllTasks(){
+        return  taskRepository.findAll();
+    }
+
+    @Override
+    @Cacheable("tasks") // la cache utilizza come value il parametro formale del metodo e come value i dati restituiti dalla queery
+    public Task getTaskById(Long id){
+        Optional<Task> task = taskRepository.findById(id);
+        if(task.isPresent()){
+            return task.get();
+        }else{
+            throw new RuntimeException();
+        }
+    }
+
+    @Override
+    public Task updateTask(Task task, Long id ){
+        Task existTask = taskRepository.findById(id).orElseThrow(
+                () -> new RuntimeException()
+        );
+        existTask.setDescription(task.getDescription());
+        existTask.setTitle(task.getTitle());
+        existTask.setCompleted(task.isCompleted());
+        taskRepository.save(existTask);
+        return existTask;
+    }
+
+    @Override
+    public Task updateCompletedTask(Task task, boolean completed ){
+        Task existTask = taskRepository.findById(task.getId()).orElseThrow(
+                () -> new RuntimeException()
+                );
+        existTask.setDescription(task.getDescription());
+        existTask.setTitle(task.getTitle());
+        existTask.setCompleted(completed);
+        taskRepository.save(existTask);
+        return existTask;
+    }
+
+    @Override
+    @CacheEvict("tasks") // questo specifica che quando si richiama il metodo deleteTask si va ad aggiornare il dato salvato in cache per mantenerlo coerente al db
+    public void deleteTask(long id) {
+        cacheManager.getCache("tasks").evict(SimpleKey.EMPTY); // questo specifica che ogni qualvolta richiamo la funzione mi va ad eleminare dalla cache l'elemento con la chiave vuota
+        //check
+        taskRepository.findById(id).orElseThrow(()-> new RuntimeException());
+        //delete
+        taskRepository.deleteById(id);
+
+    }
+
+    @Override
+    public List<Task> getTaskByCompleted( boolean completed){ //@Param("completed")
+       return  taskRepository.getTaskByCompleted(completed);
+    }
+}
+```
+
+7. 
+controller/TaskController.java
+
+```java
+package it.eng.corso.task_service.controller;
+
+import it.eng.corso.task_service.model.Task;
+import it.eng.corso.task_service.service.TaskService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+
+import java.time.LocalDateTime;
+import java.util.HashMap;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+
+@RestController
+@RequestMapping("/api/v1/tasks")
+public class TaskController {
+
+    @Autowired
+    private TaskService taskService;
+
+    //Save task
+    @PostMapping
+    public ResponseEntity<Task> saveTask(@RequestBody Task task){
+        return new ResponseEntity<Task>(taskService.saveTask(task), HttpStatus.CREATED);
+    }
+
+    //Get all
+    @GetMapping
+    public List<Task> getAllTasks(){
+        return taskService.getAllTasks();
+    }
+
+    //Update completed
+    @PutMapping("{id}")
+    public ResponseEntity<Task> updateTask(@PathVariable("id") Long id, @RequestBody Task task ){
+        return new ResponseEntity<Task>(taskService.updateTask(task,id), HttpStatus.OK);
+    }
+
+    //Update completed
+    @PutMapping("/update-completed/{completed}")
+    public ResponseEntity<Task> updateCompletedTask(@PathVariable("completed") boolean completed, @RequestBody Task task ){
+        return new ResponseEntity<Task>(taskService.updateCompletedTask(task,completed), HttpStatus.OK);
+    }
+
+    //Get by Id
+    @GetMapping("{id}")
+    public ResponseEntity<Task> getById(@PathVariable("id") Long id, @RequestBody Task task ){
+        return new ResponseEntity<Task>(taskService.getTaskById(id), HttpStatus.OK);
+    }
+
+    //Delete Task
+    @DeleteMapping("{id}")
+    public ResponseEntity<String> deleteTask(@PathVariable("id") long id){
+        taskService.deleteTask(id);
+        return new ResponseEntity<String>("Task deleted.", HttpStatus.OK);
+    }
+
+    //Get all tasks where completed is equal tu the passed value
+    @GetMapping("/get-all-completed/{completed}")
+    public List<Task> getTaskByCompleted(@PathVariable("completed") boolean completed){
+        return taskService.getTaskByCompleted(completed);
+    }
+
+    @ExceptionHandler(NoSuchElementException.class)
+    public ResponseEntity<Object> exception(NoSuchElementException e){
+        HashMap<String, Object> body = new HashMap<>();
+
+        body.put("timestamp", LocalDateTime.now());
+        body.put("Error_Code","500");
+        body.put("message", e.getMessage() + "contattare l'assistenza");
+
+        e.printStackTrace();
+        return new ResponseEntity<>(body, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+}
+```
+
+8. ### Creiamo un Exception Handler
+
+```java
+
+```
+8. 
+### Exeption Handler
+
+### Caching
+grazie alla Programmazione Orientate agli Aspetti 
+
+
+poer la caching Spring implementa un [Proxy](https://refactoring.guru/design-patterns/proxy) con lo stesso nome del metodo su cui abbiamo messo l'annotation. In base all'annotation che stiamo implementato, il metodo del proxy aandrà a wrappare il metodo definito da noi su cui abbiamo posto l'annotation. Il metodo wrappato verrà eseguito o prima o dopo o in mezzo al codice del proxy  wrapper.  
+Perchè utilizzare un Proxy?
+
+* Proxies are commonly used when we want to augment the functionality of a target class, without directly modifying the class itself. Typically we wrap the underlying target class with a proxy class and expose exactly the same public interface. Calls to the target class should then be indistinguishable (on the face of it) from calls to the proxy class. One way of achieving this is to subclass the target class (more on this later).
+
+Once we have this in place, the proxy is free to decorate any calls with additional behaviours. Examples of this include adding caching, logging or security functionality. Libraries such as Hibernate use proxies for features such as lazy-loading collections on one-to-many relationships.
+
+The main benefit of proxies is that they allow us to just focus on writing our domain code, as the proxy implementations can be handled by the library code instead. This allows us to achieve quite a lot with minimal effort and we can avoid writing a lot of boilerplate code.
+
+In Aspect Orientated Programming (AOP) proxies are actively encouraged. AOP's goal is to separate out cross-cutting concerns from business logic code and we can see that this is a great fit with proxies. There are also other mechanisms to write AOP code, but proxies are a sensible and fairly understandable starting point. *
+[why proxy?](https://ntsim.uk/posts/a-closer-look-at-spring-proxies#why-proxyhttps://ntsim.uk/posts/a-closer-look-at-spring-proxies#why-proxy)
+
+un errore che può verificarsi con l'uso del Proxy che va a wrappare l'implementazione di 2 nostri metodi A e B.
+
+il comportamento corretto è chiamare sempre i medotodi dichiarati da noi sempre tramite l'interfaccia del Proxy.
+quindi tramite il proxy chiamo prima A e poi sempre tramite l'interfccia del proxy chaomo B,  in questo modo in ogni chiamata viene eseguito il codice del proxy che wrappa A e B
+Tuttavia l'errore si ha quando dall'interfaccia del Proxy chiamo il metodo A quindi esegui il codice che wrappa A, ma all'interno dell'esecuzione del metodo A richiamo B. In questo caso il richiamo di B da A, senza passare dall'interfaccia del Proxy non esegue il codice che wrappa B, da cui l'errore.
+
+
+quando utiliziamo dei @Bean in Spring questi diventano dei proxy
+appena aggiungiamo una cqualunque annotation l'annotation prevede una implementazione dell'annotation attraverso l'AOP  equindi a livello implementativo tramite un Proxy che wrappa il comportamento della nostra funzione.
+
+
+
+
+It appears the main motivation of this proxying is to keep developers working within the application context. By default, Spring assumes that beans are meant to be consumed with singleton scope. This means that there are only single instances of beans managed within the context, and if we try to resolve a bean from it, we will retrieve the same instance every time.
+
+This is generally the policy many popular dependency injection (DI) containers take towards managing their objects. In the majority of cases, this is the simplest and most efficient approach and is probably most in-line with developer's expectations of what DI containers should do.
+[Why is this useful?](https://ntsim.uk/posts/a-closer-look-at-spring-proxies#why-is-this-useful)
+
+#### meccanismo di @cache 
+
+### meccanismo @Cacheable
+
+15. per abilitare il caching dobbiamo specificare la notation `@EnableCaching` questa la possiamo mettere in qualunque punto del codice in cui abbiamo la nessità di usare la cache tuttavia inserendola  nel taskServiceApplication (main) la abilito globalmente.
+
+```java
+package it.eng.corso.task_service;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@SpringBootApplication
+@EnableCaching  
+public class TaskServiceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(TaskServiceApplication.class, args);
+		System.out.println("Server is Running");
+
+	}
+}
+```
+
+16. 
+con l'annotation  @Cacheable("<nome_entity>") abilito il caching su una funzione per una determinata Entity.
+inserendo qui cachable una volta che viene fatta la query per la prima volta, i dati vengono coservati nell cahce e quindi, quando la funzione viene richiamata in seguito, non verrà lanciata la cache ma i dati verranno recuperati dalla cache.
+
+ la cache salva i dati in formato chiave valore e utilizza come value il parametro formale del metodo e come value i dati restituiti dalla queery
+
+```java
+ @Override
+    @Cacheable("tasks") 
+    public List<Task> getAllTasks(){
+        return  taskRepository.findAll();
+    }
+
+    @Override
+    @Cacheable("tasks") 
+    public Task getTaskById(Long id){
+        Optional<Task> task = taskRepository.findById(id);
+        if(task.isPresent()){
+            return task.get();
+        }else{
+            throw new RuntimeException();
+        }
+    }
+```
+
+inoltre possiamo usare la notation     @CacheEvict("tasks") questa specifica che quando si richiama il metodo deleteTask si va ad aggiornare il dato salvato in cache per mantenerlo coerente al db
+
+ cacheManager.getCache("tasks").evict(SimpleKey.EMPTY); // questo specifica che ogni qualvolta richiamo la funzione mi va ad eleminare dalla cache l'elemento con la chiave vuota
+```java
+    @Override
+    @CacheEvict("tasks") 
+    public void deleteTask(long id) {
+        cacheManager.getCache("tasks").evict(SimpleKey.EMPTY); 
+        //check
+        taskRepository.findById(id).orElseThrow(()-> new RuntimeException());
+        //delete
+        taskRepository.deleteById(id);
+
+    }
+
+```
+
+
+### clear cache
+19.
+Abilitiamo in `/main/TaskServiceApplication` la schedulazione dei metodi con `@EnableScheduling` che abilita l'esecuxione determinate logiche/funzioni ogni tot di tempo, ovvero mi permette di eseguire il metodoto dopo un certo delay
+
+```java
+package it.eng.corso.task_service;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.scheduling.annotation.EnableScheduling;
+
+@SpringBootApplication
+@EnableCaching  // inserendo qui enable cache essendo nel taskServiceApplication (main) la abilito globalmente.
+@EnableScheduling 
+public class TaskServiceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(TaskServiceApplication.class, args);
+		System.out.println("Server is Running");
+
+	}
+}
+```
+20.
+
+la notation  `@CacheEvict(allEntries = true, cacheManager = "tasks")`
+mi permette di svuotare la cache per tutte le istanze di "tasks".
+
+service/TaskServiceImpl.java
+```java
+    @CacheEvict(allEntries = true, cacheManager = "tasks")
+    @Scheduled(initialDelay = 2000, fixedDelay = 2000)
+    public void clear(){
+        System.out.println("svuoto cache");
+    }
+```
+con la notation  `@Scheduled(initialDelay = 2000, fixedDelay = 2000)`
+stiamo dicendo che il metodo clear deve eseguire dopo 2000ms dall'inizio e poi ogni 2000ms
+
+in alternativa potremmo usare [Cron](https://www.javatpoint.com/java-cron-expression)
+specificando giorno e ora di ripetizione del nostro metodo.
+
+```java
+    @CacheEvict(allEntries = true, cacheManager = "tasks")
+    @Scheduled(cron = "0 0 3 * * MON_FRI")
+    public void clear(){
+        System.out.println("svuoto cache");
+    }
+
+```
+in questo modo ad esempio eseguiamo alle 3 di notte
+
+
+```java
+
+```
+
+
+```java
+
+```
+    
+### HTTP Request
+
+1) GET http://localhost:8080/api/v1/tasks
+
+2) GET http://localhost:8080/api/v1/tasks/1
+
+3) POST http://localhost:8080/api/v1/tasks
+{
+    "title" : "my bsest task",
+    "description" : "my beautifull task",
+    "completed" : false
+}
+
+4) PUT http://localhost:8080/api/v1/tasks/3
+{
+    "title" : "my thirth task",
+    "description" : "less is more, less is better",
+    "completed" : false
+}
+
+### Transactional
+@Transactional serve a gestire le transazioni ACID
+
+## 
+
+vogliamo nascondere dal DB le chiamate che permettono di recuperare le informazione della nostra applicazione che non sono strettamente necessarie da esporre. 
+capendo ad esempio che gli id sono progressivi e avedo accesso alle informazioni tramite gli id potrei recuperare info di altri utenti.
+
+uuid lo andiamo al valorizzare prima del savataggio nel db della nostra Entity.
+
+```java
+@Override
+public Book save(Book book) {
+	book.setUuid(String.valueOf(UUID.randomUUID());
+ return bookRepository.save();
+
+}
+```
+ utilizzando l'uuid abbiamo più entropia nella scelta dell'id
+
+```json
+{
+	"title": "Paperino",
+	"author": "Topolino",
+	"price": 50.0
+}
+
+```
+
+![Initializr](/img/18.png)
+
+
+
+Utilizzo il [DTO](https://www.baeldung.com/java-dto-pattern) come oggetto per passare informazioni tra il presentation layer e il business layer in modo da mantenere queste informazioni ancora più  riservate. il busines layer trasformerà DTO in Entity per comunicare con il Data Layer, e viceversa il business layer riceverà entity dal Data Layer e le traformerà in DTO per il presentation layer
+
+![Initializr](/img/layers-4.svg)
+
+```java
+
+
+```
+
+nella nostra entity inseriamo questi 2 annotation
+@NoArgsContructor // viene creato un costruttore con nessun parametro
+@AllArgsCOntructor  // viene creato un costruttore con tutti i parametri
+
+model/Book.java
+```java
+package it.eng.corso.bookservice.model;
+
+import ...
+
+@Entity
+@Getter
+@Setter
+@Table()
+@NoArgsContructor // viene creato un costruttore con nessun parametro
+@AllArgsCOntructor  // viene creato un costruttore con tutti i parametri
+public class Book {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String title;
+    @Column(name = "autore")
+    private String author;
+    private Double price;
+}
+
+```
+
+
+## Reference
+[A closer look at Spring proxies](https://ntsim.uk/posts/a-closer-look-at-spring-proxies#why-is-this-useful)
