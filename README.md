@@ -8,10 +8,18 @@
 5. [Primo progetto REST Step by Step](#5-primo-progetto-rest-step-by-stepp)
 6. [Programmazione Reattiva progetto Chat Step by Step](#6-programmazione-reattiva-progetto-chat-step-by-step)
 7. [Lanciare un container con Mongo DB](#7-lanciare-un-container-con-mongo-db)
-8. 8. Applicazione Web Step-by-Step
+8. [Applicazione Web Step by Step](#8-applicazione-web-step-by-step)
 9. [Gestione task Step by Step](#8-gestione-task-step-by-step)
    - [Creiamo un Exception Handler](#creiamo-un-exception-handler)
    - [Caching](#caching)
+   - [Transactional](#transactional)
+10. [Review Project Step By Step](#10-review-project-step-by-step)
+   - [Crezione di un WebClient](#creazione-di-un-webclient)
+   - [Error Handling](#error-handling)
+   - [Data Validation](#data-validation)
+
+
+### Data Validation
 
 ## 1. Basi di Spring
 ### 1.1 Spring Framework
@@ -2026,7 +2034,7 @@ Utilizzo il [DTO](https://www.baeldung.com/java-dto-pattern) come oggetto per pa
 ![Initializr](/img/layers-4.svg)
 
 
-creiamo la caterlla dto sotto main e poi la classe dto per la nostra entity
+creiamo la cartella dto sotto main e poi la classe dto per la nostra entity
 
 `/dto/BookDTO.java`
 ```java
@@ -2166,7 +2174,7 @@ stessa cosa in service/BookService.java
 ```
 
 
-## Review Project Step-By-Step
+## 10. Review Project Step-By-Step
 
 id : book uuid
 stars: 1-to-5
@@ -2764,7 +2772,7 @@ pom.xml
 		<dependency>
 			<groupId>org.springdoc</groupId>
 			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
-			<version>2.5.0</version>
+			<version>2.7.0</version>
 		</dependency>
 ```
 
