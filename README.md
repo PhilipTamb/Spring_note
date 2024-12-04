@@ -14,10 +14,10 @@
    - [Caching](#caching)
    - [Transactional](#transactional)
 10. [Review Project Step By Step](#10-review-project-step-by-step)
-   - [Crezione di un WebClient](#creazione-di-un-webclient)
-   - [Error Handling](#error-handling)
-   - [Data Validation](#data-validation)
-   - [Discovery Server](#discovery-service)
+    - [Crezione di un WebClient](#creazione-di-un-webclient)
+    - [Error Handling](#error-handling)
+    - [Data Validation](#data-validation)
+    - [Discovery Server](#discovery-service)
 
 
 ### Data Validation
