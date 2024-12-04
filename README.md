@@ -6,11 +6,12 @@
 3. [Configurazione DB](#3-configurazione-db)
 4. [Spring Repository e interfacciamento con il DB](#4-spring-repository-e-interfacciamento-con-il-db)
 5. [Primo progetto REST Step by Step](#5-primo-progetto-rest-step-by-stepp)
-6. [Programmazione Reattiva progetto Chat Step by Step](Programmazione Reattiva progetto Chat Step by Step)
-7. [Lanciare un container con Mongo DB](#6-lanciare-un-container-con-mongo-db)
-8. [Gestione task Step by Step](gestione-task-step-by-step)
-   - [Creiamo un Exception Handler](creiamo-un-exception-handler)
-   - [Caching](caching)
+6. [Programmazione Reattiva progetto Chat Step by Step](#6-programmazione-reattiva-progetto-chat-step-by-step)
+7. [Lanciare un container con Mongo DB](#7-lanciare-un-container-con-mongo-db)
+8. 8. Applicazione Web Step-by-Step
+9. [Gestione task Step by Step](#8-gestione-task-step-by-step)
+   - [Creiamo un Exception Handler](#creiamo-un-exception-handler)
+   - [Caching](#caching)
 
 ## 1. Basi di Spring
 ### 1.1 Spring Framework
@@ -578,7 +579,7 @@ public class UserController {
 }
 ```
 
-## 5 Primo progetto REST Step by Step 
+## 5. Primo progetto REST Step by Step 
 
 1.  Creazione progetto con [Spring Initializr](https://start.spring.io/)
 
@@ -823,7 +824,7 @@ Insert into contatti(nome,numero_telefono) values ("Pippo", "3317658672");
 ![Initializr](/img/4.png)
 
 
-## 6 Programmazione Reattiva progetto Chat Step by Step
+## 6. Programmazione Reattiva progetto Chat Step by Step
 [Create a WebFlux application with Spring Boot](https://hantsy.github.io/spring-reactive-sample/start/boot-first.html)
 
 > [!NOTE]
@@ -1070,7 +1071,7 @@ public class ChatController {
 ![Initializr](/img/8.png)
 
 
-## 6 Lanciare un container con Mongo DB
+## 7. Lanciare un container con Mongo DB
 Docker & MongoDB
 
 * Per mantenere i dati anche se il container viene eliminato, mappa una directory del tuo host come volume:
@@ -1136,7 +1137,7 @@ Persisting Data
 podman run --name mysql-container -e MYSQL_ROOT_PASSWORD=my-secret-pwd -d -p 3306:3306 -v /path/on/host:/var/lib/mysql mysql:latest
 ```
 
-## Applicazione Web Step-by-Step
+## 8. Applicazione Web Step-by-Step
 [Serving JSP with Spring Boot 3](https://howtodoinjava.com/spring-boot/spring-boot-jsp-view-example/)
 1.
 voglimo che il risultato sia una appllicazione web quindi vogliamo un artifact finale .war
