@@ -17,6 +17,7 @@
    - [Crezione di un WebClient](#creazione-di-un-webclient)
    - [Error Handling](#error-handling)
    - [Data Validation](#data-validation)
+   - [Discovery Server](#discovery-service)
 
 
 ### Data Validation
@@ -2801,26 +2802,206 @@ con la notation
 [Cors](https://www.baeldung.com/spring-cors)
 
 
-```java
 
+ ## Discovery Server
+ ogni servizio comunica la propria presenza al Discovery Service per eesere disponibile all'interno del dominio applicativo.
+ ogni servizio utilizza il proprio 
+ spring.application.name = <name> 
+ al discovery server, inoltre il servizio che si vuole registrare al DS gli fornirà l'endpoint al quale contattarlo
+ 
+in questo caso come dipendenza utiliziamo 
+```
+Eureka Server 
+Spring Cloud Discovery
+spring-cloud-netflix Eureka Server.
+```
+
+ ![Initializr](/img/21.png)
+
+
+in application.propierties andimao a settare 
+ eureka.client.register-with-eureka=false --> disabilitiamo che il discovery possa registrars perchè per questa applicazione non è utile
+ eureka.client-fetch-registry=false       --> disabilitiamo il caching per evitare incoerenze in fase di produzione
+ si ha comunque un meccanismo di cashing minimo di 30s
+```xml
+spring.application.name=discovery-service
+
+server.port=8761
+
+eureka.client.register-with-eureka=false
+eureka.client-fetch-registry=false
+
+```
+in discovery service application aggiungiamo la notation @EnableEurekaServer
+```java
+package it.eng.corso.discovery_service;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+@EnableEurekaServer
+public class DiscoveryServiceApplication {
+	public static void main(String[] args) {
+		SpringApplication.run(DiscoveryServiceApplication.class, args);
+	}
+}
+```
+
+per permettere a un servizio come Book-Service di registrarsi all'interno del Discovery dobbiamo andare nel pom.xml 
+del discovery copiare  `<spring-cloud.version>2024.0.0</spring-cloud.version>` e anche  `<dependencyManagement>` 
+e incollarli nel `pom.xml` di `Book-Service`.
+Le stesse dipendenze le andimo a inserire nel `pom.xml` di `Review-Service`
+```xml
+
+	<spring-cloud.version>2024.0.0</spring-cloud.version>
+
+...
+	<dependencyManagement>
+		<dependencies>
+			<dependency>
+				<groupId>org.springframework.cloud</groupId>
+				<artifactId>spring-cloud-dependencies</artifactId>
+				<version>${spring-cloud.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
+```
+inolre  nel pom.xml di Book-Service dobbiamo inserire anche 
+```xml
+		<dependency>
+			<groupId>org.springframework.cloud</groupId>
+			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+		</dependency>
+```
+
+inoltre nell'application.propierties di  Book-Service
+```java
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka
+```
+
+lanciando il DS e andando all'endpoint su cui esegue avremo
+`http://localhost:8761/`
+
+### LoadBalancer
+il discovery server implementa anche un meccanosmo di Load Balancing. quindi quando riceve una chiamata da parte del Book-Service il discovery server decide su quale istanza di Review-Service girare la richiesta. il load balancing può essere gestito con diverse politiche di scheduling.
+
+
+ ![Initializr](/img/22.png)
+
+
+
+togliamo il web client da Book-Service
+e rinominiamo WebClientConfig in WebClientBuilderConfig
+ ![Initializr](/img/23.png)
+
+ scriviamo il nuovo WebClientBuilderConfig
+ andando a istruire Spring che ci sarà un load balancer
+ inserendo l notation @LoadBalanced
+```
+package it.eng.corso.review_service.config;
+
+import org.springframework.cloud.client.loadbalancer.LoadBalanced;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.web.reactive.function.client.WebClient;
+
+@Configuration
+public class WebClientBuilderConfig {
+
+    @Bean // per inserire questo elemento all'interno dell'application context , ovvero dice a spring creami un instanza di una diependeza
+    @LoadBalanced // staiamo dicendo a spring che
+    public WebClient.Builder getWebClientBuilder() {
+        return WebClient.builder();
+    }
+}
+
+```
+
+
+in review-seervice
+application.propierties
+
+```java
+server.port=0
+```
+
+
+```java
+     @Override
+    public BookDTO findByUuid(String uuid) {
+        BookDTO ret = modelToDTO(    bookRepository.findByUuid(uuid).orElseThrow( NoDataFoundException::new));
+        // dopo aver cercato il book dalla nostra base dati
+        //andiamo ad arricchire il nostro book andando a recuperare i dati da un'altro microservizio
+        // attraverso il webClient
+
+    ret.setStars(
+            webClientBuilder.build().get() //il web client ci sta permettendo di fare una richiesta ad una particolare endpoint
+                    .uri("http://review-service/api/v1/reviews/average"
+                    ,uriBuilder -> uriBuilder.queryParam("uuidBook", uuid).build())
+                    .retrieve()
+                    .bodyToMono(Double.class)
+                    .block() // stiamo bloccando il servio in maniera bloccante
+            //il thread principale resta in attesa della risposta sul mono a seguito della richiesta del WebClient
+    );
+        return ret;
+    }
+```
+
+### API Gateway
+per accedere ai servizi l'unico endpoint da conoscere dovrà essere l'API Gateway, tuttele richieste dovranno essere indirizzate a lui e l'API gateway le girerà all'interno dell'applicazione le richieste.
+anche l'api gateway dovrà registrarsi al discovery server.
+
+
+creiamo un nuovo progetto per l'APIGateway con le dependencies
+
+Reactive Gateway Spring Cloud Routing
+Provides a simple, yet effective way to route to APIs in reactive applications. Provides cross-cutting concerns to those APIs such as security, monitoring/metrics, and resiliency.
+
+Eureka Discovery Client Spring Cloud Discovery
+A REST based service for locating services for the purpose of load balancing and failover of middle-tier servers.
+
+ ![Initializr](/img/24.png)
+
+ 
+```java
+spring.application.name=api-gateway
+
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka
+```
+
+```java
 
 ```
 
 ```java
 
-
 ```
-
 
 ```java
 
+```
+
+```java
 
 ```
 
+```java
 
+```
 
+```java
 
+```
 
+```java
 
+```
+
+```java
+
+```
 ## Reference
 [A closer look at Spring proxies](https://ntsim.uk/posts/a-closer-look-at-spring-proxies#why-is-this-useful)
