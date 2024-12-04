@@ -5,7 +5,7 @@
 2. [Struttura Base del Progetto](#2-struttura-base-del-progetto)
 3. [Configurazione DB](#3-configurazione-db)
 4. [Spring Repository e interfacciamento con il DB](#4-spring-repository-e-interfacciamento-con-il-db)
-5. [Primo progetto REST Step-by-Step](#5-primo-progetto-step-by-step)
+5. [Primo progetto REST Step-by-Step](#5-primo-progetto-rest-step-by-stepp)
 6. [Lanciare un container con Mongo DB](#6-lanciare-un-container-con-mongo-db)
 
 ## 1. Basi di Spring
