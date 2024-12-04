@@ -2786,6 +2786,7 @@ recuperabile con la chiamata <endpoint>/v3/api-docs
 
 OpenAPI ci permette anche di inserire le notation indicando il messaggio da includere all'interno della response http con un determinato codice
 allo stesso modo dall' XML di OpenAPI possiamo andarci a creare il controller
+[@ApiResponse](https://www.baeldung.com/swagger-operation-vs-apiresponse#apiresponse)
 ```java
     @GetMapping("/{uuid}")
     @ApiResponse( value = {
