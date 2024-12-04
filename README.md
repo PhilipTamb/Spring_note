@@ -2407,7 +2407,7 @@ public class ReviewController {
 ```
 
 11.
-facciamo una HTTP Request che richiama il save() 
+facciamo una HTTP Request che richiama il `save()` 
 
 ```json
 HTTP POST
@@ -2636,7 +2636,7 @@ inoltre per aumentare la scalabilità non setto una porta fissa per un determina
 
 
 per fare ciò necessitiamo nel servizio book-service
-pom.xml
+`pom.xml`
 ```xml
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -2644,8 +2644,174 @@ pom.xml
 		</dependency>
 ```
 
+
 ![Initializr](/img/20.png)
 
 A questo punto facendo una richiesta per recuperare un book dall'id ci accorgiamo che ome oggetto di ritorno otterremo un oggetto con il campo stars valorizzato con il valore medio
+
+
+
+### Error Handling Book-Service
+
+
+### Data Validation
+validazione formale del dato: verifica se il campo è effettivamente stato valorizzato nella forma corretta
+ad esempio per una email verifico che ci sia la at @ ce ci sia un .it .com ecc.
+
+nel progetto `Book-Service`
+aggiungo nel `pom.xml` la dipendenza per la validation dei dati
+
+```xml
+<dependency>
+<groupId>org.springframework.boot</groupId>
+<artifactId>spring-boot-starter-validation</artifactId>
+</dependency>
+```
+
+in `controller/BookCOntroller.java`
+aggiungo `@Valid` per la validazione formale 
+```java
+    @PostMapping
+    public BookDTO save( @RequestBody @Valid BookDTO book ){
+        return bookService.save( book );
+    }
+```
+
+[Package jakarta.validation.constraints](https://jakarta.ee/specifications/bean-validation/3.0/apidocs/jakarta/validation/constraints/package-summary)
+
+possiamo utilizzare ilmpackage import jakarta.validation.constraints.*; per importare le notation di validation che potremmo applicare all'ogetto BookDTO in modo che quando il presentation layer prova a passare un BookDTO che non rispetta la validazione formale viene restituto un errore.
+e quindi possimao utilizzare le notation:
+
+```java
+    @NotNull(message = "il titolo non può essere nullo")
+    @Size(min = 5, max= 50)
+    @Email   
+    @Null
+```
+    
+```java
+package it.eng.corso.bookservice.dto;
+
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
+import jakarta.validation.constraints.Size;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@Builder
+@NoArgsConstructor // viene creato un costruttore con nessun parametro
+@AllArgsConstructor  // viene creato un costruttore con tutti i parametri
+public class BookDTO {
+    private String uuid;
+    @NotNull(message = "il titolo non può essere nullo")
+    @Size(min = 5, max= 50)
+    private String title;
+    @Email
+    private String author;
+    private Double price;
+    @Null
+    private Double stars;
+}
+```
+
+
+possiamo fare una validatione per gruppi
+creiamo la flder groups
+e dentro
+ * Step1
+ * Step2
+ * Step3
+
+aggiungiamo i gruppi di annotation negli attributi
+
+```java
+public class BookDTO {
+    @Null(groups = Step1.class)
+    private String uuid;
+    @NotNull(message = "il titolo non può essere nullo", groups = {Step2.class, Step1.class})
+    @Size(min = 5, max= 50)
+    private String title;
+    @Email( groups =  Step2.class)
+    private String author;
+    private Double price;
+    @Null
+    private Double stars;
+}
+```
+
+mi validi BookDTO seguendo le notation indicate in Step1.class
+in questo caso valido BookDTO solo rispetto alle notatio del gruppo di appartenenza 1
+```java
+    @PostMapping
+    public BookDTO save( @RequestBody @Validated(Step1.class) BookDTO book ){
+        return bookService.save( book );
+    }
+
+
+```
+
+### Aggiungiamo questa dipendenza per utilizzare la libreria di OpenAPI UI
+
+[Swagger Petstore - OpenAPI 3.0](https://editor.swagger.io/)
+lo swagger dato l' .XML di OpenAPI ci genera l'interfaccia grafica con gli endpoint. di fatto lo swagger ci serve per documentare i nostri endpoint
+pom.xml
+```xml
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<version>2.5.0</version>
+		</dependency>
+```
+
+quindi per usare swagger si va in `localhost:8080/v3/api-docs`
+si va a recuperare il json nella nosta applicazione e si va ad incollare nella scheramta del [link](https://editor.swagger.io/)
+questo ci genererà tutte le chiamate HTTP al nostro controller.
+
+quindi openAPI ci permette a disposizione uno strumento per descrivere e documentare le chiamate al nostro controller in formato json 
+recuperabile con la chiamata <endpoint>/v3/api-docs
+
+OpenAPI ci permette anche di inserire le notation indicando il messaggio da includere all'interno della response http con un determinato codice
+allo stesso modo dall' XML di OpenAPI possiamo andarci a creare il controller
+```java
+    @GetMapping("/{uuid}")
+    @ApiResponse( value = {
+            @ApiResponse(responseCode = 200, description = "tutto ok"),
+            @ApiResponse(responseCode = 404, description = "L'uuid indicato  non esiste sulla base dati")
+    })
+    public BookDTO findById( @PathVariable String uuid ){
+        return bookService.findByUuid( uuid );
+    }
+```
+
+con la notation 
+@CrossOrigin sulla nostra classe controller possiamo andare ad aprire il nostro endpoint verso tutto oppure creare una whitelist con gli endpoint che ci possono raggiungere
+[Cors](https://www.baeldung.com/spring-cors)
+
+
+```java
+
+
+```
+
+```java
+
+
+```
+
+
+```java
+
+
+```
+
+
+
+
+
+
 ## Reference
 [A closer look at Spring proxies](https://ntsim.uk/posts/a-closer-look-at-spring-proxies#why-is-this-useful)
