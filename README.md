@@ -3071,6 +3071,180 @@ spring.datasource.url=jdbc:mysql://195.32.10.140:3306/corso
 
 ```
 
+### Config Server
+ ![Initializr](/img/25.png)
+
+server.port=8888 --> specifichiamo la porta che per convenzione è la 8888
+
+spring.profiles.active=native ->  con questo spedifichiamo che i file di proprierties che il config server andrà a carcare saranno all'interno di resources/config
+dobbiamo creare la cartella config dentro resources
+```java
+spring.application.name=config-server
+
+server.port=8888
+spring.profiles.active=native
+
+```
+
+inseriamo @EnableConfigServer
+```java
+package com.example.config_server;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.cloud.config.server.EnableConfigServer;
+
+@SpringBootApplication
+@EnableConfigServer
+public class ConfigServerApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(ConfigServerApplication.class, args);
+	}
+
+}
+
+```
+visto che stiamo inserende il server di configurazione tutti i servizi compreso l'api gateway dovranno avere un'altra dependecies
+all'interno del pom.xml inseriamo
+
+```java
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-config</artifactId>
+    </dependency>
+```
+
+nel config-server dentro la cartella config creata in precedenza creo api-gateway.properties per specificare le properties dell'api gateway
+e ci inseriamo
+
+```java
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka
+
+```
+
+nell'application properties dell'api gateway viene modificato togliendo  `eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka`
+
+e al suo posto inseriremo l'endpoint dal quale andrà a recuperare l'endpoint del discovery service, ovvero : `spring.config.import= configserver:http://localhost:8888`
+```java
+spring.application.name=api-gateway
+
+spring.config.import= configserver:http://localhost:8888
+
+#definiamo delle rotte
+spring.cloud.gateway.routes[0].id=book-service
+spring.cloud.gateway.routes[0].uri=lb://book-service
+spring.cloud.gateway.routes[0].predicates[0]=Path=/api/v1/books/**
+
+spring.cloud.gateway.routes[1].id=review-service
+spring.cloud.gateway.routes[1].uri=lb://review-service
+spring.cloud.gateway.routes[1].predicates[0]=Path=/api/v1/reviews/**
+```
+il config server potrebbe essere inserito anche come opzionale con:
+`spring.config.import= optional:configserver:http://localhost:8888`
+
+
+il primo servizio da laciare nella nostra applicazione sarà il config-server
+
+modifichiamo quindi gli application.propierties di tutti i microservizi andando a scegliere quali sono le informazioni da tenere nascoste che rimaranno all'intrno del microservizio, mentre tutte le info di configurazione che vogliamo rendere publiche le andiamo a inserire nel confi-server all'interno della cartella config
+
+quindi il nuovo application.properties di Book-Service conterrà solo
+
+```java
+spring.application.name=book-service
+
+spring.config.import= configserver:http://localhost:8888
+
+server.port=0
+
+spring.profiles.active = "dev"
+```
+
+nel config-server
+in 
+/config/book-service.properties andiamo a inserire le proprieta di Book-Service da rendere publiche
+
+```java
+spring.datasource.url=jdbc:mysql://195.32.10.140:3306/corso
+spring.datasource.username=root
+spring.datasource.password=ginopino
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=update
+
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka
+```
+
+quando gestimo i file di properties all'interno del config-server ogni volta che facciamo una modifica dobbiamo riavviarlo.
+avremo 3 config server in esecuzione: uno per lo sviluppo, uno per i test e uno per la produzione.
+tutto ciò che è modificabile lo mettiamo a disposizione del cliente attraverso il config sever. ad esempio le route dell'api-gateway fanno parte della logica applicativa e non ha senso esporle al cliente per una eventuale modifica.
+
+questo è uno dei possibili scenari per la configurazione ed è utile solo nella fase di sviluppo.
+un'altra possibilità è qualla che il config-server si va a recuperare le properties da delle repositories
+
+
+discovery-servece
+application.properties
+```java
+spring.application.name=discovery-service
+
+spring.config.import=configserver:http//localhost:8888
+
+server.port=8761
+```
+
+/config/discovery-server.properties 
+```java
+eureka.client.register-with-eureka=false
+eureka.client-fetch-registry=false
+eureka.instance.preferIpAddress=true
+```
+
+andando all'endpoint
+
+localhost:8888/default --> etteniamo le properties
+o con
+localhost:8888/api-gateway/default --> otteniamo le properties dell'api-gateway
+
+review-service
+application.properties
+```java
+spring.application.name=review-service
+
+spring.config.import=configserver:http//localhost:8888
+
+server.port=0
+```
+
+/config/review-service.properties 
+```java
+spring.datasource.url=jdbc:mysql://195.32.10.140:3306/philip_db
+spring.datasource.username=root
+spring.datasource.password=ginopino
+spring.jpa.database-platform=org.hibernate.dialect.MySQLDialect
+spring.jpa.show-sql=true
+spring.jpa.hibernate.ddl-auto=none
+
+eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka
+eureka.instance.preferIpAddress=true
+```
+
+
+una soluzione alternativa per passare le configurazioni al config-server si può fare specificando nell'application.properties del config-server:
+```java
+spring.cloud.config.server.native.search-locations: file:///${user.home}/conf/engaca
+```
+in questo modo i file di properties non saranno quelli dentro il jar (che potranno essere eliminati) ma saranno quelli dentro il file system al path indicato, ovvero dentro 
+
+faacendo così quando rilascerò  i vari ambienti: Sviluppo, Test e Produzione, allora in questi vari ambienti rilascerò gli stessi file di properties. 
+
+```java
+
+```
+
+```java
+
+```
 
 ```java
 
@@ -3081,6 +3255,9 @@ spring.datasource.url=jdbc:mysql://195.32.10.140:3306/corso
 
 ```
 
+```java
+
+```
 
 ```java
 
