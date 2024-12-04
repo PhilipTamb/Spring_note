@@ -2966,40 +2966,126 @@ A REST based service for locating services for the purpose of load balancing and
 
  ![Initializr](/img/24.png)
 
- 
+
+ all'interno dell'application.propierties dell'api gateway andaimao a dichiarare l'endpoint per il discovery service
+ e poi dichiariamo le rotte per indirizzare verso gli altri servizi
 ```java
 spring.application.name=api-gateway
 
 eureka.client.serviceUrl.defaultZone=http://localhost:8761/eureka
+
+#definiamo delle rotte
+spring.cloud.gateway.routes[0].id=book-service
+#in questo modo tramite il loadBalancer riusciamo a raggiungere il servizio book-service
+spring.cloud.gateway.routes[0].uri=lb://book-service
+spring.cloud.gateway.routes[0].predicates[0]=Path=/api/v1/books/**
+
+
+spring.cloud.gateway.routes[1].id=review-service
+spring.cloud.gateway.routes[1].uri=lb://review-service
+spring.cloud.gateway.routes[1].predicates[0]=Path=/api/v1/review/**
 ```
+
+se arriva una richiesta che contiene il path /api/v1/books/** lo andiamo a indirizzare verso al servizio book-service.
+di fatto ogni rotta è definita da 3 attributi: id, uri e predicates.
+
+possiamo rendere scalabile anche il Boo-Service oltre che il review-service inserendo in application.propierties 
+in questo modo andiamo ad assegnare una porta casuale al servizio book-service in questo modo possiamo, senza problemi andare a creare più istanze del servizio book-service.
+```xml
+server.port=0
+```
+
+inserire nelle application.propierties dei servizi e del discovery-service
+```xml
+eureka.instance.preferIpAddress=true
+```
+
+
+### Profiles
+
+creaiomo un file di copia di BookServiceImpl che chiamiamo BookServiceImpl2, facciamo questi perchè ad esempio vigliamo differenziare il comportamento degli acesi al DB di sviluppo rispetto a quelli in produzione.
+
+```java
+@Service("primo")
+public class BookServiceImpl implements BookService {}
+```
+
+```java
+@Service("secondo")
+public class BookServiceImpl2 implements BookService {
+```
+ma come facciamo dal controller a differenziare quale service chiamare??
+
+potremmo farlo sdoppiando il BookController creando il Bookv2Controller
+e utilizzare la notation @Qualifier
+
+```java
+public class BookController {
+    @Autowired
+    @Qualifier("secondo")
+    private BookService bookService;
+	....
+}
+```
+
+
+
+```java
+public class Bookv2Controller {
+    @Autowired
+    @Qualifier("secondo")
+    private BookService bookService;
+	....
+}
+```
+
+tuttavia questo approccio è molto difficile da manutenere, quindi un approccio alternativo può essere quello di definire i Profile
+
+
+```java
+@Service
+@Profile("default")
+public class BookServiceImpl implements BookService {
+...
+}
+```
+
+```java
+@Service
+@Profile("dev")
+public class BookServiceImpl2 implements BookService {
+	...
+}
+```
+
+per definire il Profile 
+nell'  application.propierties inseriamo
+```java
+spring.profiles.active = "dev"
+```
+In questo modo abilitiamo il Profile "dev"
+
+Inoltre possiamo creare una copia di application.propierties che chiamiamo  application-dev.propierties per definire altre proprietà che ad esempio potrebbero essere utili per la fase di sviluppo in cui ci andiamo ad inserire le proprietà utili all'ambiente di sviluppo che dovrà essere diverso da quello di produzione
+```java
+spring.datasource.url=jdbc:mysql://195.32.10.140:3306/corso
+
+```
+
 
 ```java
 
 ```
 
-```java
-
-```
 
 ```java
 
 ```
 
-```java
-
-```
 
 ```java
 
 ```
 
-```java
-
-```
-
-```java
-
-```
 
 ```java
 
