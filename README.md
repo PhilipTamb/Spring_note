@@ -3480,10 +3480,189 @@ class BookServiceApplicationTests {
 }
 ```
 
+
+Lo stesso test possiamo farlo con Mokito
+    non possiamo andare a lavorare con la dependency injection di spring perchè vogliamo una classe mock
+    se chiedessimo l'istanza alla DI di spring troveremmo l'istanza già valorizzata
+
+in test/java/it.eng.corso.bookservice creiamo
+BookServiceMockTest.java
+
+istruiamo mokito dicendogli di restituire un instanza mock di book quando andiamo a richiamare il metodo Save().
+
+di fatto stiamo creando un observer (il metodo mock) che quando la funzione viene chiamata restituisce un oggetto mock.
+
+andiamo a creare la funzione che ci restituirà il riferimento ad un oggeto mock (finto), e questo dovrà avvenire quando chiamiamo una determinata funzione che imposteremo.
+
+```java
+package it.eng.corso.bookservice;
+import ...
+
+@ExtendWith(MockitoExtension.class)
+public class BookServiceMockTest {
+
+ @Mock // specifichiamo la classe di cui vogliamo fare il mock
+    private BookRepository bookRepository;
+
+ @InjectMocks
+    private BookServiceImpl bookService;
+
+ @Test
+    void testSave(){
+     // dobbiamo indicare noi l'oggetto che vogliamo venga fatto il mock
+     Book bookSaved = Book.builder()
+             .title("titolo del book mock")
+             .author("autore book saved")
+             .price(9.99)
+             .build();
+
+     //come faccio a digli che quando chiamo il repository del metodo mokkato mi deve restiture l'oggetto mokkatto?
+     Mockito.when(bookRepository.save(Mockito.any()))
+             .thenReturn(bookSaved);
+
+     //quando richiamo il metodo bookRepository.save(Mockito.any());
+     //allora restituisci l'istanza di bookSaved'
+
+         BookDTO bookDTOSaved = bookService.save(BookDTO.builder().build());
+
+     Assertions.assertEquals(bookSaved.getAuthor(), bookDTOSaved.getAuthor());
+     
+     // prima che il DTO venga passato al metodo save lo andiamo a valorizzare con l'uuid
+     ArgumentCaptor<Book> uuidCaptur = ArgumentCaptor.forClass(Book.class);
+     // chiediamo a mokito di verificare il parametro che gli è stato passato quando è stato richiamato il metodo save
+     Mockito.verify(bookRepository).save( uuidCaptur.capture());
+     // quindi possiamo andarci a recuperare il parametro e possiamo verificare, ad esempio, che non sia null
+     Assertions.assertNull(uuidCaptur.getValue().getUuid());
+ }
+}
+
+
+```
+
+## Actuator
+aggiungo la dependency di actuator al pom.xml del nostro service
+quando andiamo ad eseguire il nostro service verrà startato anche il nostro actuator che serve a darci informazioni sull'applicazione.
+di default actuator espone solo l'endpoint healt --> http://localhost.8080/actuator/health
+
+```java
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-actuator</artifactId>
+    </dependency>
+```
+
+nel pom.xml del servizio book-service andiamo a inserire le proprietà per esporre gli endpoint di actuator
+```java
+managmennt.endpoints.web.exposure.include=*
+managment.server.port=9999
+```
+
+http://localhost.8080/actuator/beans ci permette di vedere tutti i beans della nostra applicazione
+http://localhost.8080/actuator/env --> ci da le info di enviroment
+http://localhost.8080/actuator/metrics  --> per recuperare le metriche come ad es. l'uso do memoria
+http://localhost.8080/actuator/mappings  --> 
+
+
+Inoltre possiamo connettere Prometheus per visualizzare in maniera più semplice e anche graficamente le nostre metriche [vedi link](https://docs.spring.io/spring-boot/api/rest/actuator/prometheus.html)
+
+
+### Spring Cloud Circuit Breaker
+
+[Spring Cloud Circuit Breaker](https://spring.io/projects/spring-cloud-circuitbreaker)
+[Circuit Breaker](https://martinfowler.com/bliki/CircuitBreaker.html)
+
+se la nostra applicazione si rende conto che uno dei microservizi non sta funzionando allora il CircuitBracker apre il circuito
+dopo un timeout il CircuitBracker metterà il sistema in uno stato di half open cercando di ricontattare il servizio che non stava funzionando nella speranza che questo possa rispondere correttamente.
+a questo punto il CircuitBracker proverà a fare dei tentativi per contattare il servizio non funzionante e indagherà se il servizio funziona come ci si aspetta.
+se più della metà dei tentativi va in errore il Circuit Bracker aprirà il circuito
+
+```java
+    <dependency>
+      <groupId>org.springframework.cloud</groupId>
+      <artifactId>spring-cloud-starter-circuitbreaker-resilience4j</artifactId>
+    </dependency>
+```
+
+voglio gestire una logica dove il CB fa 5 chiamate 
+se almeno il 50% di queste chiamate va male apro il circuito
+attendo un tempo di 5s, ovvero interrompo il circuito per 5 secondi, dopo questi 5 secondi 
+il CB andrà nello stato di half-open e cercarà di ricontattare il microservizio
+
+
+```java
+resilience4j.circuitbreaker.instances.book.register-health-indicator=true
+resilience4j.circuitbreaker.instances.book.event-consumer-buffer-size=10
+resilience4j.circuitbreaker.instances.book.sliding-window-type=COUNT_BASED
+resilience4j.circuitbreaker.instances.book.sliding-window-size=5
+resilience4j.circuitbreaker.instances.book.failure-rate-threshold=50
+resilience4j.circuitbreaker.instances.book.wait-duration-in-open-state=5s
+resilience4j.circuitbreaker.instances.book.permitted-number-of-calls-in-half-open-state=3
+resilience4j.circuitbreaker.instances.book.automatic-transition-from-open-to-half-open-enabled=true
+```
+
+
+vogliamo implementare il circuit braker nel metodo che chiamerà un'altro microservizio 
+in questo caso in findByUuid() di Book andiamoa richiamare il metodo setStars() di RevieWService
+
+quindi inseriamo   @CircuitBreaker( name="book", fallbackMethod = findByUuidOpen) 
+specificando la funzione alternativa che si andrà ad eseguire quando il circuit bracker aprirà il circuito.
+
+andiamo quindi a creare la funzione  findByUuidOpen() nella quale eliminiamo la chiamata al servizio di Review. 
+findByUuidOpen() deve avere come parametro formale anche exception (RuntimeException e).
+
+```java
+
+    @Override
+    @CircuitBreaker( name="book", fallbackMethod = findByUuidOpen) // creiamo un percorso alternativo quando il servizio Review-service non sta funzionando 
+    public BookDTO findByUuid(String uuid) {
+        BookDTO ret = modelToDTO(    bookRepository.findByUuid(uuid).orElseThrow( NoDataFoundException::new));
+        // dopo aver cercato il book dalla nostra base dati
+        //andiamo ad arricchire il nostro book andando a recuperare i dati da un'altro microservizio
+        // attraverso il webClient
+
+    ret.setStars(
+            webClientBuilder.build().get() //il web client ci sta permettendo di fare una richiesta ad una particolare endpoint
+                    .uri("http://review-service/api/v1/reviews/average"
+                    ,uriBuilder -> uriBuilder.queryParam("uuidBook", uuid).build())
+                    .retrieve()
+                    .bodyToMono(Double.class)
+                    .block() // stiamo bloccando il servio in maniera bloccante
+            //il thread principale resta in attesa della risposta sul mono a seguito della richiesta del WebClient
+    );
+        return ret;
+    }
+
+    @Override
+    public BookDTO findByUuidOpen(String uuid, RuntimeException e) {
+        BookDTO ret = modelToDTO(    bookRepository.findByUuid(uuid).orElseThrow( NoDataFoundException::new));
+
+        return ret;
+    }
+```
+
+### Saga Pattern
+[Saga](https://microservices.io/patterns/data/saga.html)
+
+
 ```java
 
 ```
 
+```java
+
+```
+
+```java
+
+```
+
+```java
+
+```
+
+```java
+
+```
 
 ```java
 
@@ -3501,7 +3680,6 @@ class BookServiceApplicationTests {
 
 ```
 
-
 ```java
 
 ```
@@ -3509,6 +3687,11 @@ class BookServiceApplicationTests {
 ```java
 
 ```
+
+```java
+
+```
+
 ## Tips
 
 posso includere diversi packages specificando allinterno dell' ApplicationService (main)
@@ -3517,6 +3700,7 @@ usando la notation `@ComponentScan`
 
 @ComponentScan( basePackages = it.eng.corso, it.eng.mioPackage)
 ```
+
 
 
 l'@Autowired rompe l'incapsulamento del nostro codice ovvero cambia il modificatore di visibilità dell'attributo su cui è dichiarato da private a public.
