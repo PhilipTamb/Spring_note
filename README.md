@@ -3238,6 +3238,253 @@ in questo modo i file di properties non saranno quelli dentro il jar (che potran
 
 faacendo così quando rilascerò  i vari ambienti: Sviluppo, Test e Produzione, allora in questi vari ambienti rilascerò gli stessi file di properties. 
 
+## Transaction 
+vogliamo realizzare delle tranzaction per il servizio book-service
+
+tutti gli step all'interno della transazione devono essere eseguiti in maniera pulita altrimenti si deve fare il roolback per tornare allo stato orifìginale.
+
+[@Transactional](https://docs.spring.io/spring-framework/reference/data-access/transaction/declarative/annotations.html)
+
+
+andiamo a inserire in BookServiceApplication la notation @Transactional
+```java
+@SpringBootApplication
+@Transactional
+public class BookServiceApplication {
+
+	public static void main(String[] args) {
+		SpringApplication.run(BookServiceApplication.class, args);
+	}
+
+}
+```
+
+```java
+    @Override
+    @Transactional
+    public BookDTO save(BookDTO book) {
+
+        book.setUuid(String.valueOf(UUID.randomUUID()));
+        BookDTO ret =  modelToDTO(bookRepository.save(  dtoToModel(book)));
+
+        if ( true)
+            throw new DataIntegrityViolationException("errore");
+
+        return ret;
+    }
+```
+
+
+*** se l'excaption sollevata è della famiglia RUntimeExaception (super classe) allora se viene lanciata si fa la roolback
+
+invece se l'exception deriva da una superclasse che non è runtimeException allora ci toccherà inserire la notation di Spring per abilitare la roolback nella Exception che non farebbe il rollback in automtico.
+
+come nel caso qui sotto, lanciamo `throw new SQLException();` una sql exception che non estende runtime e quindi per abilitare il roolback inseriamo `@Transactional(rollbackFor = SQLException)`
+
+```java
+    @Override
+    @Transactional(rollbackFor = SQLException)
+    public BookDTO save(BookDTO book) {
+
+        book.setUuid(String.valueOf(UUID.randomUUID()));
+        BookDTO ret =  modelToDTO(bookRepository.save(  dtoToModel(book)));
+
+        if ( true)
+            throw new SQLException();
+            //throw new DataIntegrityViolationException();
+
+        return ret;
+    }
+```
+
+[Spring @Transactional Rollback Handling](https://dev.to/wynnt3o/spring-transactional-rollback-handling-hc8)
+
+### Propagation
+
+[Understanding Spring Transactions Propagation Levels: A Comprehensive Guide](https://medium.com/@224vinod/understanding-spring-transactions-propagation-levels-a-comprehensive-guide-feb8093d3d31)
+
+con le transazione si propagano nei metodi chiamati
+
+ @Transactional(propagation = Propagation.REQUIRED) -> la propagation verifica che ci sia già una transazione attiva, se non c'è  una transazione attiva ne crea una.
+va a vereificare se il nostro metodo è stato chiamato da un'altro metodo che ha creato una transazione, altrimenti si crea una transazione
+
+```java
+    @Override
+    @Transactional(propagation = Propagation.REQUIRED)
+    public BookDTO save(BookDTO book) {
+        book.setUuid(String.valueOf(UUID.randomUUID()));
+        BookDTO ret =  modelToDTO(bookRepository.save(  dtoToModel(book)));
+
+        if ( true)
+            throw new SQLException();
+            //throw new DataIntegrityViolationException();
+        return ret;
+    }
+```
+
+	 @Transactional(propagation = Propagation.REQUIRES_NEW) --> Richiede che la transazione deve essere necessariamente creata da questa funzione
+```java
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public BookDTO save(BookDTO book) {
+        book.setUuid(String.valueOf(UUID.randomUUID()));
+        BookDTO ret =  modelToDTO(bookRepository.save(  dtoToModel(book)));
+
+        if ( true)
+            throw new SQLException();
+            //throw new DataIntegrityViolationException();
+        return ret;
+    }
+```
+
+  @Transactional(propagation = Propagation.MANDATORY) --> se la transazione non c'è  lancia un'eccezione, ovvero l metodo save vuole partecpare alla transazione creata da qualche altro metodo
+```java
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public BookDTO save(BookDTO book) {
+        book.setUuid(String.valueOf(UUID.randomUUID()));
+        BookDTO ret =  modelToDTO(bookRepository.save(  dtoToModel(book)));
+
+        if ( true)
+            throw new SQLException();
+            //throw new DataIntegrityViolationException();
+        return ret;
+    }
+```
+
+
+    @Transactional(propagation = Propagation.NEVER) --> il duale di mandatory, vole essere questo metodo l'owner della transazione
+```java
+    @Override
+    @Transactional(propagation = Propagation.NEVER)
+    public BookDTO save(BookDTO book) {
+        book.setUuid(String.valueOf(UUID.randomUUID()));
+        BookDTO ret =  modelToDTO(bookRepository.save(  dtoToModel(book)));
+
+        if ( true)
+            throw new SQLException();
+            //throw new DataIntegrityViolationException();
+        return ret;
+    }
+```
+
+
+    @Transactional(propagation = Propagation.NOT_SUPPORTED) --> se c'è una transazione la sospedo e poi viene riattivata alla fine di questo metodo, ovvero interrompe la transazione attiva
+```java
+    @Override
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
+    public BookDTO save(BookDTO book) {
+        book.setUuid(String.valueOf(UUID.randomUUID()));
+        BookDTO ret =  modelToDTO(bookRepository.save(  dtoToModel(book)));
+
+        if ( true)
+            throw new SQLException();
+            //throw new DataIntegrityViolationException();
+        return ret;
+    }
+```
+
+
+        @Transactional(propagation = Propagation.REQUIRES_NEW) --> se c'è una transazione la sospedo e ne va a creare un'altra, successivamente alla fine fine di questo metodo viene riattivata la transazione precedente. in queto modo una eventuale roolback verrà eseguita solo sulle operazioni della funzione su cui è chiamata.
+```java
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public BookDTO save(BookDTO book) {
+        book.setUuid(String.valueOf(UUID.randomUUID()));
+        BookDTO ret =  modelToDTO(bookRepository.save(  dtoToModel(book)));
+
+        if ( true)
+            throw new SQLException();
+            //throw new DataIntegrityViolationException();
+        return ret;
+    }
+```
+
+
+           @Transactional(propagation = Propagation.NESTED) --> definisce un saave point congelando lo stato attuale della transazione, un rollback non avrà accesso all modifica delle operazine prima del save point. quindi la roolback viene fatta dal save point in poi 
+```java
+    @Override
+    @Transactional(propagation = Propagation.NESTED)
+    public BookDTO save(BookDTO book) {
+        book.setUuid(String.valueOf(UUID.randomUUID()));
+        BookDTO ret =  modelToDTO(bookRepository.save(  dtoToModel(book)));
+
+        if ( true)
+            throw new SQLException();
+            //throw new DataIntegrityViolationException();
+        return ret;
+    }
+```
+
+## Testing
+
+all'interno di test/java/it.eng.corso.bookservice
+c'è BookServiceAPplication.java
+```java
+package it.eng.corso.bookservice;
+
+import it.eng.corso.bookservice.dto.BookDTO;
+import it.eng.corso.bookservice.model.Book;
+import it.eng.corso.bookservice.repository.BookRepository;
+import it.eng.corso.bookservice.service.BookService;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.context.SpringBootTest;
+
+import java.util.List;
+
+@SpringBootTest
+class BookServiceApplicationTests {
+
+	@Autowired
+	private BookRepository bookRepository;
+
+	@Autowired
+	private BookService bookService;
+
+	@Test
+	void contextLoads() {
+	}
+
+	@Test
+	void testSave(){
+		bookRepository.deleteAll();
+
+		BookDTO bookToSave = BookDTO.builder()
+				.title("titolo")
+				.author("Kafka")
+				.price(9.99)
+				.build();
+
+				BookDTO  bookSaved = bookService.save(bookToSave);
+
+				List<Book> books = bookRepository.findAll();
+				Assertions.assertNotNull(bookSaved.getUuid());
+				Assertions.assertEquals( bookToSave.getAuthor(), bookSaved.getAuthor());
+				Assertions.assertEquals( bookToSave.getTitle(), bookSaved.getTitle());
+	}
+
+	@Test 
+	void testStars(){
+		BookDTO bookToSave = BookDTO.builder()
+				.title("titolo")
+				.author("Kafka")
+				.price(9.99)
+				.build();
+
+		BookDTO  bookSaved = bookService.save(bookToSave);
+		BookDTO book = bookService.findByUuid( bookSaved.getUuid());
+		Assertions.assertNotNull(book.getStars());
+	}
+}
+```
+
+```java
+
+```
+
+
 ```java
 
 ```
@@ -3250,15 +3497,6 @@ faacendo così quando rilascerò  i vari ambienti: Sviluppo, Test e Produzione, 
 
 ```
 
-
-```java
-
-```
-
-```java
-
-```
-
 ```java
 
 ```
@@ -3267,5 +3505,24 @@ faacendo così quando rilascerò  i vari ambienti: Sviluppo, Test e Produzione, 
 ```java
 
 ```
+
+```java
+
+```
+## Tips
+
+posso includere diversi packages specificando allinterno dell' ApplicationService (main)
+usando la notation `@ComponentScan`
+
+
+@ComponentScan( basePackages = it.eng.corso, it.eng.mioPackage)
+```
+
+
+l'@Autowired rompe l'incapsulamento del nostro codice ovvero cambia il modificatore di visibilità dell'attributo su cui è dichiarato da private a public.
+infatti qualunque annotation non può essere utilizzata se noi dichiariamo final il nostro attributo.
+
+
+
 ## Reference
 [A closer look at Spring proxies](https://ntsim.uk/posts/a-closer-look-at-spring-proxies#why-is-this-useful)
