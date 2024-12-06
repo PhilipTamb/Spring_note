@@ -3653,84 +3653,69 @@ maven --> (click) clean --> (click) package
 
  in ogni servizio ci andiamo a creare nella cartella più esterna il DOckerfile
 
- ```java
+
+discovery-server dockerfile
+```
+```java
 # Usa un'immagine base compatibile con Java 21
 FROM openjdk:21-jdk-slim
 
 # Copia il file JAR
-COPY target/book-service-0.0.1-SNAPSHOT.jar /app/app.jar
+COPY target/*.jar /app/app.jar
+
+# Espone la porta del servizio
+EXPOSE 8761
+
+# Comando di avvio
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+```
+config-server dockerfile
+```java
+# Usa un'immagine base compatibile con Java 21
+FROM openjdk:21-jdk-slim
+
+# Copia il file JAR
+COPY target/*.jar /app/app.jar
+
+# Espone la porta del servizio
+EXPOSE 8888
+
+# Comando di avvio
+ENTRYPOINT ["java", "-jar", "/app/app.jar"]
+```
+
+api-gateway dockerfile
+```java
+# Usa un'immagine base compatibile con Java 21
+FROM openjdk:21-jdk-slim
+
+# Copia il file JAR
+COPY target/api-gateway-0.0.1-SNAPSHOT.jar /app/api-gateway-0.0.1-SNAPSHOT.jar
 
 # Espone la porta del servizio
 EXPOSE 8080
 
 # Comando di avvio
-ENTRYPOINT ["java", "-jar", "/app/book-service-0.0.1-SNAPSHOT.jar"]
+ENTRYPOINT ["java", "-jar", "/app/api-gateway-0.0.1-SNAPSHOT.jar"]
 ```
 
-```bash
-docker build -t book-service-app .
-docker images
-```
-
-```bash
-docker run -p 9091:8080 book-service-app
-```
-
-
-
-```bash
-version: "3.8"
-services:
-  config-server:
-    build:
-      context: ./config-server
-    ports:
-      - "8888:8888"
-    networks:
-      - app-network
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8888"]
-      interval: 10s
-      timeout: 5s
-      retries: 10
-
-  discovery-server:
-```
-
+review-service dockerfile
 ```java
+# Usa un'immagine base compatibile con Java 21
+FROM openjdk:21-jdk-slim
 
-```
+# Copia il file JAR
+COPY target/review-service-0.0.1-SNAPSHOT.jar /app/review-service-0.0.1-SNAPSHOT.jar
 
-```java
+# Espone la porta del servizio
+EXPOSE 8080
 
-```
-
-```java
-
-```
-
-```java
-
-```
-
-```java
-
-```
-
-```java
-
-```
-
-```java
-
-```
-
-```java
-
+# Comando di avvio
+ENTRYPOINT ["java", "-jar", "/app/review-service-0.0.1-SNAPSHOT.jar"]
 ```
 
 
-bock-service dockerfile
+book-service dockerfile
 ```java
 # Usa un'immagine base compatibile con Java 21
 FROM openjdk:21-jdk-slim
@@ -3744,6 +3729,16 @@ EXPOSE 8080
 # Comando di avvio
 ENTRYPOINT ["java", "-jar", "/app/app.jar"]
 ```
+
+```bash
+docker build -t book-service-app .
+docker images
+```
+
+```bash
+docker run -p 9091:8080 book-service-app
+```
+
 nella cartella più esterna di tutto il progetto inseriamo il
 docker-compose.yml
 ```java
