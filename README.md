@@ -1106,6 +1106,7 @@ podman run --detach --name todoDB -p 27017:27017 -v /Users/ptambe/data:/data/db 
 ```
 ## Lanciare un container con MySQL
 [Deploy MySQL with podman](https://infotechys.com/deploying-mysql-using-podman/)
+[Podman Cheatsheet](https://gist.github.com/LucaRottiers/6a6fb28ec9d98cffb125d722842a87ef)
 Pulling the MySQL Image
 ```bash
 podman pull mysql
@@ -1115,6 +1116,9 @@ Creating a MySQL Container
 ```bash
 podman run --name mysql-container -e MYSQL_ROOT_PASSWORD=my-secret-pwd -d -p 3306:3306 mysql:latest
 ```
+```bash
+ podman images
+ ```
 ```bash
  podman ps
 ```
@@ -1139,6 +1143,9 @@ mysql -h localhost -p
 ```bash
 podman exec -it mysql-container mysql -u root -p
 ```
+
+connect DBever with mysql container
+[Running MySQL in container Docker and setting DBeaver](https://medium.com/@edu18ds/running-mysql-in-container-docker-and-setting-dbeaver-5f9e5781649d)
 
 Persisting Data
 
